@@ -1,3 +1,3 @@
 module BIP_backend
 
-go 1.17
+go 1.13
