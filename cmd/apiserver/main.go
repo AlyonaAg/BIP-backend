@@ -3,7 +3,8 @@ package main
 import (
 	"BIP_backend/internal/app/apiserver"
 	"flag"
-	"fmt"
+	"github.com/BurntSushi/toml"
+	"log"
 )
 
 var (
@@ -11,13 +12,20 @@ var (
 )
 
 func init() {
-	flag.StringVar(&configPath, "config-path", "configs/apiserver.toml", "path to config file")
+	flag.StringVar(&configPath, "configs-path", "configs/apiserver.toml", "path to configs file")
 }
 
 func main() {
 	flag.Parse()
 
-	fmt.Println("main")
-	apiserver.Print()
-	apiserver.Print2()
+	config := apiserver.NewConfig()
+	_, err := toml.DecodeFile(configPath, config)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s := apiserver.New(config)
+	if err := s.Start(); err != nil {
+		log.Fatal(err)
+	}
 }

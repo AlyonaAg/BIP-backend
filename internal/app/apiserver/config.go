@@ -1,11 +1,13 @@
 package apiserver
 
-import "fmt"
-
-func Print() {
-	fmt.Println("config")
+type Config struct {
+	BindAddr string `toml:"bind_addr"`
+	LogLevel string `toml:"log_level"`
 }
 
-func Print2() {
-	fmt.Println("aa")
+func NewConfig() *Config {
+	return &Config{
+		BindAddr: ":8080",
+		LogLevel: "debug",
+	}
 }
