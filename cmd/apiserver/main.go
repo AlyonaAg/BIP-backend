@@ -15,6 +15,8 @@ func init() {
 }
 
 func main() {
+	flag.Parse()
+
 	fmt.Println("main")
 	apiserver.Print()
 	apiserver.Print2()
