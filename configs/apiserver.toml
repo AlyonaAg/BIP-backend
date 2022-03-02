@@ -1,4 +1,4 @@
 bind_addr = ":8080"
 
 [store]
-database_url = "host=db port=5432 user=postgres password=qwerty dbname=postgres sslmode=disable"
+database_url = "host=db port=5432 user=postgres password=admin dbname=bip_db sslmode=disable"
