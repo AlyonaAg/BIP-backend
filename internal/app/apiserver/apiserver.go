@@ -1,6 +1,7 @@
 package apiserver
 
 import (
+	"BIP_backend/internal/app/store"
 	"github.com/gin-gonic/gin"
 	"log"
 )
@@ -8,6 +9,7 @@ import (
 type Server struct {
 	config *Config
 	router *gin.Engine
+	store  *store.Store
 }
 
 func New(config *Config) *Server {
@@ -19,11 +21,23 @@ func New(config *Config) *Server {
 
 func (s *Server) Start() error {
 	s.configureRouter()
-	log.Print("Starting API-server.")
+	if err := s.configureStore(); err != nil {
+		return err
+	}
+
+	log.Print("Starting API-server")
 	return s.router.Run()
 }
 
 func (s *Server) configureRouter() {
-	s.router.GET("/api/app/list", s.handleHello())
 	s.router.POST("/api/registration", s.handleRegistration())
+}
+
+func (s *Server) configureStore() error {
+	st := store.New(s.config.Store)
+	if err := st.Open(); err != nil {
+		return err
+	}
+	s.store = st
+	return nil
 }

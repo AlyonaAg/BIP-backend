@@ -5,11 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1c14806f-dae6-4bcb-9e18-527c04d0111f" name="Changes" comment="Init">
-      <change afterPath="$PROJECT_DIR$/internal/app/apiserver/router_function.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/internal/app/model/user.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/internal/app/store/config.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/internal/app/store/store.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configs/apiserver.toml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/apiserver.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/app/apiserver/apiserver.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/apiserver/apiserver.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/app/apiserver/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/apiserver/config.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/app/apiserver/router_function.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/apiserver/router_function.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,6 +35,15 @@
   </component>
   <component name="GoLibraries">
     <option name="indexEntireGoPath" value="false" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/cmd/apiserver/main.go" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Dockerfile" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/internal/app/apiserver/config.go" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/internal/app/apiserver/router_function.go" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/internal/app/model/user.go" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/docker-compose.yml" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/internal/app/apiserver/apiserver.go" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -50,6 +65,11 @@
     <property name="go.modules.go.list.on.any.changes.was.set" value="true" />
     <property name="go.watchers.conflict.with.on.save.actions.check.performed" value="true" />
     <property name="last_opened_file_path" value="$USER_HOME$" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/internal/app" />
+    </key>
   </component>
   <component name="RunManager">
     <configuration name="go build BIP_backend/cmd/apiserver" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">

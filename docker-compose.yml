@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  bip_backend:
+    build: ./
+    command: ./BIP_backend
+    ports:
+    - 8080:8080
+    depends_on:
+    - db
+
+  db:
+    restart: always
+    image: postgres:latest
+    volumes:
+    - ./.database/data:/var/lib/postgresql/data
+    environment:
+    - POSTGRES_PASSWORD=qwerty
+    ports:
+    - 5436:5432
