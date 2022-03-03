@@ -30,7 +30,7 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) configureRouter() {
-	s.router.POST("/api/registration", s.handleRegistration())
+	s.router.POST("/api/registration", s.handleUserCreate())
 }
 
 func (s *Server) configureStore() error {
