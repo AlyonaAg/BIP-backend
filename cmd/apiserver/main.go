@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/BurntSushi/toml"
-	"github.com/joho/godotenv"
 	"log"
 	"os"
+
+	"github.com/BurntSushi/toml"
+	"github.com/joho/godotenv"
 
 	"BIP_backend/internal/app/apiserver"
 )
