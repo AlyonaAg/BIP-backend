@@ -1,6 +1,8 @@
 package apiserver
 
-import "BIP_backend/internal/app/store"
+import (
+	"BIP_backend/internal/app/store"
+)
 
 type Config struct {
 	BindAddr string `toml:"bind_addr"`

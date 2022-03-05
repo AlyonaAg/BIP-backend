@@ -1,24 +1,33 @@
 package apiserver
 
 import (
-	"BIP_backend/internal/app/model"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"BIP_backend/internal/app/model"
 )
 
 func (s *Server) handleUserCreate() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		u := &model.User{}
+		var u = &model.User{}
 		if err := c.ShouldBindJSON(u); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"success": false})
-			return
-		}
-		if err := s.store.User().Create(u); err != nil {
 			log.Println(err)
-			c.JSON(http.StatusBadRequest, gin.H{"success": false})
+			c.JSON(http.StatusBadRequest, responseUserCreate(false))
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"success": true})
+
+		store := s.GetStore()
+		if err := store.User().Create(u); err != nil {
+			log.Println(err)
+			c.JSON(http.StatusBadRequest, responseUserCreate(false))
+			return
+		}
+		c.JSON(http.StatusOK, responseUserCreate(true))
 	}
+}
+
+func responseUserCreate(success bool) gin.H {
+	return gin.H{"success": success}
 }

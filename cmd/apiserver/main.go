@@ -1,30 +1,34 @@
 package main
 
 import (
-	"BIP_backend/internal/app/apiserver"
-	"flag"
 	"github.com/BurntSushi/toml"
+	"github.com/joho/godotenv"
 	"log"
-)
+	"os"
 
-var (
-	configPath string
+	"BIP_backend/internal/app/apiserver"
 )
 
 func init() {
-	flag.StringVar(&configPath, "configs-path", "configs/apiserver.toml", "path to configs file")
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
-	flag.Parse()
-
 	config := apiserver.NewConfig()
+	configPath, ok := os.LookupEnv("PATH_CONFIG")
+	if !ok {
+		log.Fatal("Error env (missing PATH_CONFIG).")
+	}
+
 	_, err := toml.DecodeFile(configPath, config)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s := apiserver.New(config)
+	s := apiserver.NewServer(config)
 	if err := s.Start(); err != nil {
 		log.Fatal(err)
 	}

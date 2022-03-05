@@ -3,9 +3,9 @@ FROM golang:latest
 RUN go version
 WORKDIR /back
 
-COPY go.mod ./
-RUN go mod download
 COPY ./ ./
+RUN go mod vendor
+RUN go mod download
 
 EXPOSE 8080
 
