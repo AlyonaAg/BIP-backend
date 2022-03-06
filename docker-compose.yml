@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  bip_backend:
+    container_name: container-backend
+    build: ./
+    command: ./BIP_backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - pgadmin
+
+  db:
+    restart: always
+    container_name: container-postgresdb
+    image: postgres:latest
+    volumes:
+      - ./.database/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=bip_db
+    ports:
+      - "5436:5432"
+
+  pgadmin:
+    restart: always
+    container_name: container-pgadmin
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=pgadmin@pgadmin.org
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
