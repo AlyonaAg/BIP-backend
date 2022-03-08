@@ -7,8 +7,8 @@ import (
 )
 
 type Config struct {
-	DatabaseURL   string `toml:"database_url"`
-	PathMigration string `toml:"path_migration"`
+	DatabaseURL   string
+	PathMigration string
 }
 
 func NewConfig() (*Config, error) {

@@ -1,8 +1,9 @@
 package store
 
 import (
-	"BIP_backend/internal/app/model"
 	"errors"
+
+	"BIP_backend/internal/app/model"
 )
 
 type UserRepository struct {
@@ -36,12 +37,38 @@ func (ur *UserRepository) Create(u *model.User) error {
 	return nil
 }
 
+func (ur *UserRepository) FindByID(id int) (*model.User, error) {
+	store, err := ur.GetStore()
+	if err != nil {
+		return nil, err
+	}
+
+	var u = &model.User{}
+	if err := store.db.QueryRow(
+		`SELECT id, username, password, first_name, second_name, is_photographer, `+
+			`avatar_url, phone_number, mail FROM "user" WHERE id = $1`,
+		id,
+	).Scan(
+		&u.ID,
+		&u.Username,
+		&u.Password,
+		&u.FirstName,
+		&u.SecondName,
+		&u.IsPhotographer,
+		&u.AvatarURL,
+		&u.PhoneNumber,
+		&u.Mail,
+	); err != nil {
+		return nil, err
+	}
+	return u, nil
+}
+
 func (ur *UserRepository) FindByUsername(username string) (*model.User, error) {
 	store, err := ur.GetStore()
 	if err != nil {
 		return nil, err
 	}
-	// add validation username
 
 	var u = &model.User{}
 	if err := store.db.QueryRow(

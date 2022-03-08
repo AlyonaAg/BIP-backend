@@ -4,8 +4,9 @@ import (
 	"errors"
 	"time"
 
-	"BIP_backend/internal/app/model"
 	"github.com/golang-jwt/jwt"
+
+	"BIP_backend/internal/app/model"
 )
 
 type tokenClaims struct {

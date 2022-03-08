@@ -1,7 +1,6 @@
 package apiserver
 
 import (
-	"BIP_backend/internal/service/auth"
 	"errors"
 	"log"
 	"net/http"
@@ -9,6 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"BIP_backend/internal/app/model"
+	"BIP_backend/internal/service/auth"
+)
+
+var (
+	incorrectUsernameOrPassword = errors.New("incorrect username or password")
 )
 
 func (s *Server) handleUserCreate() gin.HandlerFunc {
@@ -39,31 +43,43 @@ func (s *Server) handleSessionsCreate() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var r = &request{}
 		if err := c.ShouldBindJSON(r); err != nil {
-			c.JSON(http.StatusUnauthorized, errorSessionsCreate().Error())
+			c.AbortWithError(http.StatusUnauthorized, incorrectUsernameOrPassword)
 			return
 		}
 
 		store, _ := s.GetStore()
 		u, err := store.User().FindByUsername(r.Username)
 		if err != nil || !u.ComparePassword(r.Password) {
-			c.JSON(http.StatusUnauthorized, errorSessionsCreate().Error())
+			c.AbortWithError(http.StatusUnauthorized, incorrectUsernameOrPassword)
 			return
 		}
 
 		configAuth, err := auth.NewConfig()
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, "")
+			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
 
 		authorizer := auth.NewAuthorizer(configAuth)
 		jwt, err := authorizer.GenerateToken(u)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, errorSessionsCreate().Error())
+			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
 
 		c.JSON(http.StatusOK, responseSessionsCreate(jwt, u))
+	}
+}
+
+func (s *Server) handleTestAuth() gin.HandlerFunc {
+	// temporarily for testing
+	return func(c *gin.Context) {
+		id, ok := c.Get("userID")
+		if !ok {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"id": id})
 	}
 }
 
@@ -76,8 +92,4 @@ func responseSessionsCreate(jwt string, user *model.User) gin.H {
 		"jwt":  jwt,
 		"user": user,
 	}
-}
-
-func errorSessionsCreate() error {
-	return errors.New("incorrect username or password")
 }

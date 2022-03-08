@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"BIP_backend/internal/app/store"
+	"BIP_backend/middleware"
 )
 
 type Server struct {
@@ -42,12 +43,12 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) openStore() error {
-	store, err := s.GetStore()
+	storeServer, err := s.GetStore()
 	if err != nil {
 		return errors.New("empty store")
 	}
 
-	if err := store.Open(); err != nil {
+	if err := storeServer.Open(); err != nil {
 		return err
 	}
 	return nil
@@ -63,6 +64,13 @@ func (s *Server) configureRouter() error {
 	{
 		api.POST("/registration", s.handleUserCreate())
 		api.POST("/auth", s.handleSessionsCreate())
+
+		// temporarily for testing
+		apiTest := api.Group("/test")
+		apiTest.Use(middleware.UserIdentity())
+		{
+			apiTest.GET("/test_auth", s.handleTestAuth())
+		}
 	}
 	return nil
 }
