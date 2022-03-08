@@ -1,4 +1,4 @@
-package store
+package auth
 
 import (
 	"os"
@@ -7,8 +7,8 @@ import (
 )
 
 type Config struct {
-	DatabaseURL   string `toml:"database_url"`
-	PathMigration string `toml:"path_migration"`
+	signingKey     string
+	expireDuration int64
 }
 
 func NewConfig() (*Config, error) {
@@ -19,7 +19,7 @@ func NewConfig() (*Config, error) {
 	}
 
 	return &Config{
-		DatabaseURL:   config.Get("store.database_url").(string),
-		PathMigration: config.Get("store.path_migration").(string),
+		signingKey:     config.Get("auth.signing_key").(string),
+		expireDuration: config.Get("auth.expire_duration").(int64),
 	}, nil
 }

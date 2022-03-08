@@ -33,16 +33,17 @@ func (s *Server) Start() error {
 
 	log.Print("Starting API-server.")
 
-	router := s.GetRouter()
-	if router == nil {
-		return errors.New("empty router")
+	router, err := s.GetRouter()
+	if err != nil {
+		return err
 	}
+
 	return router.Run()
 }
 
 func (s *Server) openStore() error {
-	store := s.GetStore()
-	if store == nil {
+	store, err := s.GetStore()
+	if err != nil {
 		return errors.New("empty store")
 	}
 
@@ -53,26 +54,36 @@ func (s *Server) openStore() error {
 }
 
 func (s *Server) configureRouter() error {
-	router := s.GetRouter()
-	if router == nil {
-		return errors.New("empty router")
+	router, err := s.GetRouter()
+	if err != nil {
+		return err
 	}
 
 	api := router.Group("/api")
 	{
 		api.POST("/registration", s.handleUserCreate())
+		api.POST("/auth", s.handleSessionsCreate())
 	}
 	return nil
 }
 
-func (s *Server) GetConfig() *Config {
-	return s.config
+func (s *Server) GetConfig() (*Config, error) {
+	if s.config == nil {
+		return nil, errors.New("empty config")
+	}
+	return s.config, nil
 }
 
-func (s *Server) GetRouter() *gin.Engine {
-	return s.router
+func (s *Server) GetRouter() (*gin.Engine, error) {
+	if s.router == nil {
+		return nil, errors.New("empty router")
+	}
+	return s.router, nil
 }
 
-func (s *Server) GetStore() *store.Store {
-	return s.store
+func (s *Server) GetStore() (*store.Store, error) {
+	if s.store == nil {
+		return nil, errors.New("empty store")
+	}
+	return s.store, nil
 }

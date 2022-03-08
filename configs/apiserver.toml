@@ -1,4 +1,9 @@
+[server]
 bind_addr = ":8080"
+
+[auth]
+signing_key = "hKUoFfNd-vVTi58Gf-hIJlDJT0"
+expire_duration = 24
 
 [store]
 database_url = "host=db port=5432 user=postgres password=admin dbname=bip_db sslmode=disable"

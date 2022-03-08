@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/BurntSushi/toml"
 	"github.com/joho/godotenv"
 
 	"BIP_backend/internal/app/apiserver"
@@ -18,13 +17,11 @@ func init() {
 }
 
 func main() {
-	config := apiserver.NewConfig()
-	configPath, ok := os.LookupEnv("PATH_CONFIG")
+	_, ok := os.LookupEnv("PATH_CONFIG")
 	if !ok {
 		log.Fatal("Error env (missing PATH_CONFIG).")
 	}
-
-	_, err := toml.DecodeFile(configPath, config)
+	config, err := apiserver.NewConfig()
 	if err != nil {
 		log.Fatal(err)
 	}

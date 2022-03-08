@@ -24,9 +24,9 @@ func NewStore(config *Config) *Store {
 }
 
 func (s *Store) Open() error {
-	config := s.GetConfig()
-	if config == nil {
-		return errors.New("empty store config")
+	config, err := s.GetConfig()
+	if err != nil {
+		return err
 	}
 	databaseURL := config.DatabaseURL
 
@@ -59,30 +59,43 @@ func (s *Store) Open() error {
 }
 
 func (s *Store) User() *UserRepository {
-	if s.GetUserRepository() != nil {
-		return s.GetUserRepository()
+	ur, _ := s.GetUserRepository()
+	if ur != nil {
+		return ur
 	}
 
 	s.SetUserRepository(&UserRepository{
 		store: s,
 	})
-	return s.GetUserRepository()
+
+	ur, _ = s.GetUserRepository()
+	return ur
 }
 
 func (s *Store) Close() {
-	s.GetDB().Close()
+	db, _ := s.GetDB()
+	db.Close()
 }
 
-func (s *Store) GetConfig() *Config {
-	return s.config
+func (s *Store) GetConfig() (*Config, error) {
+	if s.config == nil {
+		return nil, errors.New("empty store config")
+	}
+	return s.config, nil
 }
 
-func (s *Store) GetUserRepository() *UserRepository {
-	return s.userRepository
+func (s *Store) GetUserRepository() (*UserRepository, error) {
+	if s.userRepository == nil {
+		return nil, errors.New("empty user repository")
+	}
+	return s.userRepository, nil
 }
 
-func (s *Store) GetDB() *sql.DB {
-	return s.db
+func (s *Store) GetDB() (*sql.DB, error) {
+	if s.db == nil {
+		return nil, errors.New("empty DB")
+	}
+	return s.db, nil
 }
 
 func (s *Store) SetUserRepository(userRepository *UserRepository) {

@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	ID             int
+	ID             int    `json:"id"`
 	Username       string `json:"username"`
 	Password       string `json:"password"`
 	FirstName      string `json:"first_name"`
@@ -41,8 +41,12 @@ func (u *User) BeforeCreate() error {
 	return nil
 }
 
-func encryptString(s string) (string, error) {
-	b, err := bcrypt.GenerateFromPassword([]byte(s), bcrypt.MinCost)
+func (u *User) ComparePassword(password string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)) == nil
+}
+
+func encryptString(password string) (string, error) {
+	b, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
 		return "", err
 	}
