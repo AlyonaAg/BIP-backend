@@ -1,4 +1,4 @@
-package auth
+package cache
 
 import (
 	"errors"
@@ -12,12 +12,12 @@ var (
 )
 
 type Config struct {
-	signingKey     string
-	expireDuration int64
+	Port           string
+	Password       string
+	ExpireDuration int64
 }
 
 func NewConfig() (*Config, error) {
-	configPath, _ := os.LookupEnv("PATH_CONFIG")
 	configPath, ok := os.LookupEnv("PATH_CONFIG")
 	if !ok {
 		return nil, noKeyEnvironmentVariables
@@ -29,7 +29,8 @@ func NewConfig() (*Config, error) {
 	}
 
 	return &Config{
-		signingKey:     config.Get("auth.signing_key").(string),
-		expireDuration: config.Get("auth.expire_duration").(int64),
+		Port:           config.Get("cache.port").(string),
+		Password:       config.Get("cache.password").(string),
+		ExpireDuration: config.Get("cache.expire_duration").(int64),
 	}, nil
 }

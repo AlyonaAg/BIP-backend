@@ -10,13 +10,14 @@ services:
     depends_on:
       - db
       - pgadmin
+      - redis
 
   db:
     restart: always
     container_name: container-postgresdb
     image: postgres:latest
     volumes:
-      - ./.database/data:/var/lib/postgresql/data
+      - ./.storage/postgres/data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=admin
@@ -35,3 +36,13 @@ services:
       - "5050:80"
     depends_on:
       - db
+
+  redis:
+    restart: always
+    container_name: container-redis
+    image: redis
+    volumes:
+      - ./.storage/redis/data:/data
+    command: redis-server --requirepass admin
+    ports:
+      - "6379:6379"

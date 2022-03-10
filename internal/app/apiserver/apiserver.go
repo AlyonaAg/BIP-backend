@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"BIP_backend/internal/app/cache"
 	"BIP_backend/internal/app/store"
 	"BIP_backend/middleware"
 )
@@ -14,18 +15,28 @@ type Server struct {
 	config *Config
 	router *gin.Engine
 	store  *store.Store
+	cache  *cache.Cache
 }
 
-func NewServer(config *Config) *Server {
+func NewServer() (*Server, error) {
+	config, err := NewConfig()
+	if err != nil {
+		return nil, err
+	}
+
 	return &Server{
 		config: config,
 		router: gin.Default(),
 		store:  store.NewStore(config.Store),
-	}
+		cache:  cache.NewCache(config.Cache),
+	}, nil
 }
 
 func (s *Server) Start() error {
 	if err := s.openStore(); err != nil {
+		return err
+	}
+	if err := s.openCache(); err != nil {
 		return err
 	}
 	if err := s.configureRouter(); err != nil {
@@ -54,6 +65,18 @@ func (s *Server) openStore() error {
 	return nil
 }
 
+func (s *Server) openCache() error {
+	cacheServer, err := s.GetCache()
+	if err != nil {
+		return errors.New("empty cache")
+	}
+
+	if err := cacheServer.Open(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *Server) configureRouter() error {
 	router, err := s.GetRouter()
 	if err != nil {
@@ -64,6 +87,7 @@ func (s *Server) configureRouter() error {
 	{
 		api.POST("/registration", s.handleUserCreate())
 		api.POST("/auth", s.handleSessionsCreate())
+		api.POST("/auth2fa", s.handler2Factor())
 
 		// temporarily for testing
 		apiTest := api.Group("/test")
@@ -94,4 +118,11 @@ func (s *Server) GetStore() (*store.Store, error) {
 		return nil, errors.New("empty store")
 	}
 	return s.store, nil
+}
+
+func (s *Server) GetCache() (*cache.Cache, error) {
+	if s.cache == nil {
+		return nil, errors.New("empty cache")
+	}
+	return s.cache, nil
 }

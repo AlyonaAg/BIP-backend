@@ -8,3 +8,15 @@ expire_duration = 24
 [store]
 database_url = "host=db port=5432 user=postgres password=admin dbname=bip_db sslmode=disable"
 path_migration = "file://migrations"
+
+[cache]
+port = "redis:6379"
+password = "admin"
+expire_duration = 4
+
+[mail]
+mail = "noreply.bip.ibks@gmail.com"
+password = "iXw.C_BmAPP4.Mk"
+host = "smtp.gmail.com"
+port = 587
+path_template = "internal/service/mail/template/mail.html"

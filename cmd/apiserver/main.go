@@ -21,12 +21,12 @@ func main() {
 	if !ok {
 		log.Fatal("Error env (missing PATH_CONFIG).")
 	}
-	config, err := apiserver.NewConfig()
+
+	s, err := apiserver.NewServer()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s := apiserver.NewServer(config)
 	if err := s.Start(); err != nil {
 		log.Fatal(err)
 	}

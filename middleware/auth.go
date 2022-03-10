@@ -21,19 +21,19 @@ func UserIdentity() gin.HandlerFunc {
 			return
 		}
 
-		configAuth, err := auth.NewConfig()
+		authorizer, err := auth.NewAuthorizer()
 		if err != nil {
-			c.AbortWithStatus(http.StatusInternalServerError)
+			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
 
-		authorizer := auth.NewAuthorizer(configAuth)
-		id, err := authorizer.ParseToken(token)
+		username, authorized, err := authorizer.ParseToken(token)
 		if err != nil {
 			c.AbortWithError(http.StatusUnauthorized, err)
 			return
 		}
 
-		c.Set("userID", id)
+		c.Set("username", username)
+		c.Set("authorized", authorized)
 	}
 }

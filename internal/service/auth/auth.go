@@ -5,26 +5,33 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/sethvargo/go-password/password"
 
 	"BIP_backend/internal/app/model"
 )
 
 type tokenClaims struct {
 	jwt.StandardClaims
-	UserId int
+	Username   string
+	Authorized bool
 }
 
 type Authorizer struct {
 	config *Config
 }
 
-func NewAuthorizer(config *Config) *Authorizer {
-	return &Authorizer{
-		config: config,
+func NewAuthorizer() (*Authorizer, error) {
+	configAuth, err := NewConfig()
+	if err != nil {
+		return nil, err
 	}
+
+	return &Authorizer{
+		config: configAuth,
+	}, nil
 }
 
-func (a *Authorizer) GenerateToken(u *model.User) (string, error) {
+func (a *Authorizer) GenerateToken(u *model.User, authorized bool) (string, error) {
 	config, err := a.GetConfig()
 	if err != nil {
 		return "", err
@@ -38,7 +45,8 @@ func (a *Authorizer) GenerateToken(u *model.User) (string, error) {
 					time.Hour * time.Duration(config.expireDuration),
 				).Unix(),
 			},
-			u.ID,
+			u.Username,
+			authorized,
 		})
 
 	signedToken, err := token.SignedString([]byte(config.signingKey))
@@ -48,10 +56,10 @@ func (a *Authorizer) GenerateToken(u *model.User) (string, error) {
 	return signedToken, nil
 }
 
-func (a *Authorizer) ParseToken(tokenString string) (int, error) {
+func (a *Authorizer) ParseToken(tokenString string) (string, bool, error) {
 	config, err := a.GetConfig()
 	if err != nil {
-		return 0, err
+		return "", false, err
 	}
 
 	token, err := jwt.ParseWithClaims(tokenString,
@@ -59,17 +67,24 @@ func (a *Authorizer) ParseToken(tokenString string) (int, error) {
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte(config.signingKey), nil
 		})
-
 	if err != nil {
-		return 0, err
+		return "", false, err
 	}
 
 	claims, ok := token.Claims.(*tokenClaims)
 	if !ok || !token.Valid {
-		return 0, errors.New("invalid token")
+		return "", false, errors.New("invalid token")
 	}
 
-	return claims.UserId, nil
+	return claims.Username, claims.Authorized, nil
+}
+
+func (a *Authorizer) GeneratePassword() (string, error) {
+	password, err := password.Generate(6, 6, 0, false, false)
+	if err != nil {
+		return "", err
+	}
+	return password, err
 }
 
 func (a *Authorizer) GetConfig() (*Config, error) {

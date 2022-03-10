@@ -24,3 +24,7 @@ sudo docker-compose up —build bip_backend
 - Port: 5432
 - Username: postgres
 - Password: admin
+
+## Время жизни токенов/паролей
+1) Токены актуальны в течение 24 часов
+2) Одноразовые пароли для двухфакторной аутентификации актуальны 5 минут

@@ -72,9 +72,13 @@ func (s *Store) User() *UserRepository {
 	return ur
 }
 
-func (s *Store) Close() {
-	db, _ := s.GetDB()
+func (s *Store) Close() error {
+	db, err := s.GetDB()
+	if err != nil {
+		return err
+	}
 	db.Close()
+	return nil
 }
 
 func (s *Store) GetConfig() (*Config, error) {
