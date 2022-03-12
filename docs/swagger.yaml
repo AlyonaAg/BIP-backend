@@ -1,0 +1,181 @@
+basePath: /api
+definitions:
+  apiserver.errorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  apiserver.request2Factor:
+    properties:
+      code:
+        type: string
+    type: object
+  apiserver.requestSessionsCreate:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  apiserver.structResponse2Factor:
+    properties:
+      jwt:
+        type: string
+      user:
+        $ref: '#/definitions/model.User'
+    type: object
+  apiserver.structResponseSessionsCreate:
+    properties:
+      jwt:
+        type: string
+    type: object
+  apiserver.structResponseUserCreate:
+    properties:
+      success:
+        type: boolean
+    type: object
+  model.User:
+    properties:
+      avatar_url:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      is_photographer:
+        type: boolean
+      mail:
+        type: string
+      password:
+        type: string
+      phone_number:
+        type: string
+      second_name:
+        type: string
+      username:
+        type: string
+    type: object
+  model.UserData:
+    properties:
+      avatar_url:
+        type: string
+      first_name:
+        type: string
+      is_photographer:
+        type: boolean
+      mail:
+        type: string
+      password:
+        type: string
+      phone_number:
+        type: string
+      second_name:
+        type: string
+      username:
+        type: string
+    type: object
+host: 192.168.1.42:8080
+info:
+  contact: {}
+  description: API for photographer search app
+  title: BIP API
+  version: "1.0"
+paths:
+  /auth:
+    post:
+      consumes:
+      - application/json
+      description: first step of two-factor authentication
+      parameters:
+      - description: username and password
+        in: body
+        name: user_auth
+        required: true
+        schema:
+          $ref: '#/definitions/apiserver.requestSessionsCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structResponseSessionsCreate'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      summary: Auth
+      tags:
+      - api
+  /auth2fa:
+    post:
+      consumes:
+      - application/json
+      description: second step of two-factor authentication
+      parameters:
+      - description: code sent by mail
+        in: body
+        name: code
+        required: true
+        schema:
+          $ref: '#/definitions/apiserver.request2Factor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structResponse2Factor'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Auth2Factor
+      tags:
+      - api
+  /registration:
+    post:
+      consumes:
+      - application/json
+      description: registering a new account
+      parameters:
+      - description: info about user
+        in: body
+        name: user_info
+        required: true
+        schema:
+          $ref: '#/definitions/model.UserData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structResponseUserCreate'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.structResponseUserCreate'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      summary: Registration
+      tags:
+      - api
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

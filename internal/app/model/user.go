@@ -6,8 +6,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type User struct {
-	ID             int    `json:"id"`
+type UserData struct {
 	Username       string `json:"username"`
 	Password       string `json:"password"`
 	FirstName      string `json:"first_name"`
@@ -16,6 +15,11 @@ type User struct {
 	AvatarURL      string `json:"avatar_url"`
 	PhoneNumber    string `json:"phone_number"`
 	Mail           string `json:"mail"`
+}
+
+type User struct {
+	UserData
+	ID int `json:"id"`
 }
 
 func (u *User) Validate() error {

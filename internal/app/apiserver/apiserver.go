@@ -5,7 +5,10 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+	"github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
 
+	_ "BIP_backend/docs"
 	"BIP_backend/internal/app/cache"
 	"BIP_backend/internal/app/store"
 	"BIP_backend/middleware"
@@ -87,15 +90,17 @@ func (s *Server) configureRouter() error {
 	{
 		api.POST("/registration", s.handleUserCreate())
 		api.POST("/auth", s.handleSessionsCreate())
-		api.POST("/auth2fa", s.handler2Factor())
+		api.POST("/auth2fa", middleware.UserIdentityWithUnauthorizedToken(), s.handler2Factor())
 
 		// temporarily for testing
 		apiTest := api.Group("/test")
-		apiTest.Use(middleware.UserIdentity())
+		apiTest.Use(middleware.UserIdentityWithAuthorizedToken())
 		{
 			apiTest.GET("/test_auth", s.handleTestAuth())
 		}
+
 	}
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	return nil
 }
 

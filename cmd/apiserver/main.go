@@ -16,6 +16,16 @@ func init() {
 	}
 }
 
+// @title           BIP API
+// @version         1.0
+// @description     API for photographer search app
+
+// @host      192.168.1.42:8080
+// @BasePath  /api
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	_, ok := os.LookupEnv("PATH_CONFIG")
 	if !ok {

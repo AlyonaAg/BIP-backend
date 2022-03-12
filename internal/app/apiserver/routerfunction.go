@@ -10,14 +10,25 @@ import (
 	"BIP_backend/internal/app/model"
 	"BIP_backend/internal/service/auth"
 	"BIP_backend/internal/service/mail"
-	"BIP_backend/middleware"
 )
 
 var (
 	incorrectUsernameOrPassword = errors.New("incorrect username or password")
 	incorrectCode               = errors.New("incorrect code")
+	incorrectToken              = errors.New("incorrect token")
+	internalServerError         = errors.New("internal server error")
+	tokenIsDeprecated           = errors.New("token is deprecated")
 )
 
+// @Summary      Registration
+// @Description  registering a new account
+// @Tags         api
+// @Accept       json
+// @Produce      json
+// @Param        user_info   body  model.UserData  true  "info about user"
+// @Success      200,400  {object}  structResponseUserCreate
+// @Failure      500  {object}  errorResponse
+// @Router       /registration [post]
 func (s *Server) handleUserCreate() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var u = &model.User{}
@@ -29,7 +40,7 @@ func (s *Server) handleUserCreate() gin.HandlerFunc {
 
 		store, err := s.GetStore()
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError)
 			return
 		}
 
@@ -42,50 +53,59 @@ func (s *Server) handleUserCreate() gin.HandlerFunc {
 	}
 }
 
-func (s *Server) handleSessionsCreate() gin.HandlerFunc {
-	type request struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
+type requestSessionsCreate struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
 
+// @Summary      Auth
+// @Description  first step of two-factor authentication
+// @Tags         api
+// @Accept       json
+// @Produce      json
+// @Param        user_auth  body  requestSessionsCreate  true  "username and password"
+// @Success      200 {object}  structResponseSessionsCreate
+// @Failure      401,500  {object}  errorResponse
+// @Router       /auth [post]
+func (s *Server) handleSessionsCreate() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var r = &request{}
+		var r = &requestSessionsCreate{}
 		if err := c.ShouldBindJSON(r); err != nil {
-			c.AbortWithError(http.StatusUnauthorized, incorrectUsernameOrPassword)
+			newErrorResponse(c, http.StatusUnauthorized, incorrectUsernameOrPassword)
 			return
 		}
 
 		store, err := s.GetStore()
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError)
 			return
 		}
 
 		u, err := store.User().FindByUsername(r.Username)
 		if err != nil || !u.ComparePassword(r.Password) {
-			c.AbortWithError(http.StatusUnauthorized, incorrectUsernameOrPassword)
+			newErrorResponse(c, http.StatusUnauthorized, incorrectUsernameOrPassword)
 			return
 		}
 
 		authorizer, err := auth.NewAuthorizer()
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError)
 			return
 		}
 		jwt, err := authorizer.GenerateToken(u, false /* authorized */)
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError)
 			return
 		}
 		code, err := authorizer.GeneratePassword()
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError)
 			return
 		}
 
 		sender, err := mail.NewSender()
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError)
 			return
 		}
 
@@ -97,11 +117,11 @@ func (s *Server) handleSessionsCreate() gin.HandlerFunc {
 
 		cache, err := s.GetCache()
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError)
 			return
 		}
 		if err := cache.Set(u.Username, code); err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError)
 			return
 		}
 
@@ -109,67 +129,69 @@ func (s *Server) handleSessionsCreate() gin.HandlerFunc {
 	}
 }
 
-func (s *Server) handler2Factor() gin.HandlerFunc {
-	type request struct {
-		Code string `json:"code"`
-	}
+type request2Factor struct {
+	Code string `json:"code"`
+}
 
+// @Summary      Auth2Factor
+// @Security 	 ApiKeyAuth
+// @Description  second step of two-factor authentication
+// @Tags         api
+// @Accept       json
+// @Produce      json
+// @Param        code  body  request2Factor  true  "code sent by mail"
+// @Success      200 {object}  structResponse2Factor
+// @Failure      401,500  {object}  errorResponse
+// @Router       /auth2fa [post]
+func (s *Server) handler2Factor() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var r = &request{}
+		var r = &request2Factor{}
 		if err := c.ShouldBindJSON(r); err != nil {
-			c.AbortWithError(http.StatusUnauthorized, incorrectUsernameOrPassword)
+			newErrorResponse(c, http.StatusUnauthorized, incorrectCode)
 			return
 		}
-
-		handleUserIdentity := middleware.UserIdentity()
-		handleUserIdentity(c)
 
 		username, ok := c.Get("username")
 		if !ok {
-			c.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
-		authorized, ok := c.Get("authorized")
-		if !ok {
-			c.AbortWithStatus(http.StatusUnauthorized)
+			newErrorResponse(c, http.StatusUnauthorized, incorrectToken)
 			return
 		}
 
 		cache, err := s.GetCache()
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError)
 			return
 		}
 		code, err := cache.Get(username.(string))
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			newErrorResponse(c, http.StatusUnauthorized, tokenIsDeprecated)
 			return
 		}
 		if code != r.Code {
-			c.AbortWithError(http.StatusUnauthorized, incorrectCode)
+			newErrorResponse(c, http.StatusUnauthorized, incorrectCode)
 			return
 		}
 
 		store, err := s.GetStore()
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError)
 			return
 		}
 
 		u, err := store.User().FindByUsername(username.(string))
-		if err != nil || authorized.(bool) {
-			c.AbortWithError(http.StatusBadRequest, err)
+		if err != nil {
+			newErrorResponse(c, http.StatusUnauthorized, incorrectToken)
 			return
 		}
 
 		authorizer, err := auth.NewAuthorizer()
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError)
 			return
 		}
 		jwt, err := authorizer.GenerateToken(u, true /* authorized */)
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError)
 			return
 		}
 
@@ -197,19 +219,25 @@ func (s *Server) handleTestAuth() gin.HandlerFunc {
 	}
 }
 
-func responseUserCreate(success bool) gin.H {
-	return gin.H{"success": success}
-}
-
-func responseSessionsCreate(jwt string) gin.H {
-	return gin.H{
-		"jwt": jwt,
+func responseUserCreate(success bool) *structResponseUserCreate {
+	return &structResponseUserCreate{
+		Success: success,
 	}
 }
 
-func response2Factor(jwt string, user *model.User) gin.H {
-	return gin.H{
-		"jwt":  jwt,
-		"user": user,
+func responseSessionsCreate(jwt string) *structResponseSessionsCreate {
+	return &structResponseSessionsCreate{
+		JWT: jwt,
 	}
+}
+
+func response2Factor(jwt string, user *model.User) *structResponse2Factor {
+	return &structResponse2Factor{
+		JWT:  jwt,
+		User: user,
+	}
+}
+
+func newErrorResponse(c *gin.Context, httpError int, definition error) {
+	c.JSON(httpError, errorResponse{Error: definition.Error()})
 }

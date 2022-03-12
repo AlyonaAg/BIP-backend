@@ -2,38 +2,76 @@ package middleware
 
 import (
 	"errors"
-	"net/http"
-
 	"github.com/gin-gonic/gin"
+	"net/http"
 
 	"BIP_backend/internal/service/auth"
 )
 
 var (
-	emptyToken = errors.New("empty token")
+	emptyToken     = errors.New("empty token")
+	incorrectToken = errors.New("incorrect token")
 )
 
-func UserIdentity() gin.HandlerFunc {
+type errorResponse struct {
+	Error string `json:"error"`
+}
+
+func UserIdentityWithUnauthorizedToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
-		if token == "" {
-			c.AbortWithError(http.StatusUnauthorized, emptyToken)
-			return
-		}
-
-		authorizer, err := auth.NewAuthorizer()
+		username, authorized, err := getTokenInfo(token)
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-			return
+			newErrorResponse(c, http.StatusUnauthorized, err)
+			c.Abort()
 		}
-
-		username, authorized, err := authorizer.ParseToken(token)
-		if err != nil {
-			c.AbortWithError(http.StatusUnauthorized, err)
-			return
+		if authorized {
+			newErrorResponse(c, http.StatusUnauthorized, incorrectToken)
+			c.Abort()
 		}
-
-		c.Set("username", username)
-		c.Set("authorized", authorized)
+		setParams(c, username, authorized)
 	}
+}
+
+func UserIdentityWithAuthorizedToken() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.GetHeader("Authorization")
+		username, authorized, err := getTokenInfo(token)
+		if err != nil {
+			newErrorResponse(c, http.StatusUnauthorized, err)
+			c.Abort()
+		}
+		if !authorized {
+			newErrorResponse(c, http.StatusUnauthorized, incorrectToken)
+			c.Abort()
+		}
+		setParams(c, username, authorized)
+	}
+}
+
+func getTokenInfo(token string) (string, bool, error) {
+	if token == "" {
+		return "", false, emptyToken
+	}
+
+	authorizer, err := auth.NewAuthorizer()
+	if err != nil {
+		return "", false, incorrectToken
+	}
+
+	username, authorized, err := authorizer.ParseToken(token)
+	if err != nil {
+		return "", false, incorrectToken
+	}
+
+	return username, authorized, nil
+}
+
+func newErrorResponse(c *gin.Context, httpError int, definition error) {
+	c.JSON(httpError, errorResponse{Error: definition.Error()})
+}
+
+func setParams(c *gin.Context, username string, authorized bool) {
+	c.Set("username", username)
+	c.Set("authorized", authorized)
 }
