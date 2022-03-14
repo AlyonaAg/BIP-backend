@@ -86,6 +86,7 @@ func (s *Server) configureRouter() error {
 		return err
 	}
 
+	router.Use(middleware.CORSMiddleware())
 	api := router.Group("/api")
 	{
 		api.POST("/registration", s.handleUserCreate())
