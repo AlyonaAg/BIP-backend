@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
@@ -86,7 +87,9 @@ func (s *Server) configureRouter() error {
 		return err
 	}
 
-	router.Use(middleware.CORSMiddleware())
+	//router.Use(middleware.CORSMiddleware())
+	router.Use(cors.Default())
+
 	api := router.Group("/api")
 	{
 		api.POST("/registration", s.handleUserCreate())

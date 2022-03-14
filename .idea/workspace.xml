@@ -4,14 +4,13 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1c14806f-dae6-4bcb-9e18-527c04d0111f" name="Changes" comment="Adding integration with swagger &amp; fixed middleware">
-      <change afterPath="$PROJECT_DIR$/middleware/cors.go" afterDir="false" />
+    <list default="true" id="1c14806f-dae6-4bcb-9e18-527c04d0111f" name="Changes" comment="Fixed CORS">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/apiserver/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/apiserver/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/docs.go" beforeDir="false" afterPath="$PROJECT_DIR$/docs/docs.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/swagger.json" beforeDir="false" afterPath="$PROJECT_DIR$/docs/swagger.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/swagger.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docs/swagger.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/app/apiserver/apiserver.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/apiserver/apiserver.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/service/auth/auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/service/auth/auth.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/service/auth/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/service/auth/config.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -139,7 +138,8 @@
     <MESSAGE value="Adding auth middleware" />
     <MESSAGE value="Adding two-factor authentication &amp; fixed" />
     <MESSAGE value="Adding integration with swagger &amp; fixed middleware" />
-    <option name="LAST_COMMIT_MESSAGE" value="Adding integration with swagger &amp; fixed middleware" />
+    <MESSAGE value="Fixed CORS" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed CORS" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>

@@ -56,7 +56,7 @@ func (a *Authorizer) GenerateToken(u *model.User, authorized bool) (string, erro
 	return signedToken, nil
 }
 
-func (a *Authorizer) ParseToken(tokenString string) (string, bool, error) {
+func (a *Authorizer) ParseToken(tokenString string) (string /*username*/, bool /*authorized*/, error) {
 	config, err := a.GetConfig()
 	if err != nil {
 		return "", false, err

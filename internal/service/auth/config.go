@@ -17,7 +17,6 @@ type Config struct {
 }
 
 func NewConfig() (*Config, error) {
-	configPath, _ := os.LookupEnv("PATH_CONFIG")
 	configPath, ok := os.LookupEnv("PATH_CONFIG")
 	if !ok {
 		return nil, noKeyEnvironmentVariables
