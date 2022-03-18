@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/BurntSushi/toml"
 	"github.com/joho/godotenv"
 
 	"BIP_backend/internal/app/apiserver"
@@ -17,19 +16,27 @@ func init() {
 	}
 }
 
+// @title           BIP API
+// @version         1.0
+// @description     API for photographer search app
+
+// @host      localhost:8080
+// @BasePath  /api
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
-	config := apiserver.NewConfig()
-	configPath, ok := os.LookupEnv("PATH_CONFIG")
+	_, ok := os.LookupEnv("PATH_CONFIG")
 	if !ok {
 		log.Fatal("Error env (missing PATH_CONFIG).")
 	}
 
-	_, err := toml.DecodeFile(configPath, config)
+	s, err := apiserver.NewServer()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s := apiserver.NewServer(config)
 	if err := s.Start(); err != nil {
 		log.Fatal(err)
 	}

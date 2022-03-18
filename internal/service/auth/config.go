@@ -1,13 +1,10 @@
-package apiserver
+package auth
 
 import (
 	"errors"
 	"os"
 
 	"github.com/pelletier/go-toml"
-
-	"BIP_backend/internal/app/cache"
-	"BIP_backend/internal/app/store"
 )
 
 var (
@@ -15,9 +12,8 @@ var (
 )
 
 type Config struct {
-	BindAddr string
-	Store    *store.Config
-	Cache    *cache.Config
+	signingKey     string
+	expireDuration int64
 }
 
 func NewConfig() (*Config, error) {
@@ -31,19 +27,8 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
-	storeConfig, err := store.NewConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	cacheConfig, err := cache.NewConfig()
-	if err != nil {
-		return nil, err
-	}
-
 	return &Config{
-		BindAddr: config.Get("server.bind_addr").(string),
-		Store:    storeConfig,
-		Cache:    cacheConfig,
+		signingKey:     config.Get("auth.signing_key").(string),
+		expireDuration: config.Get("auth.expire_duration").(int64),
 	}, nil
 }

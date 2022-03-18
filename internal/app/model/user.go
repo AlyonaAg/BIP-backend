@@ -6,8 +6,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type User struct {
-	ID             int
+type UserData struct {
 	Username       string `json:"username"`
 	Password       string `json:"password"`
 	FirstName      string `json:"first_name"`
@@ -16,6 +15,11 @@ type User struct {
 	AvatarURL      string `json:"avatar_url"`
 	PhoneNumber    string `json:"phone_number"`
 	Mail           string `json:"mail"`
+}
+
+type User struct {
+	UserData
+	ID int `json:"id"`
 }
 
 func (u *User) Validate() error {
@@ -41,8 +45,12 @@ func (u *User) BeforeCreate() error {
 	return nil
 }
 
-func encryptString(s string) (string, error) {
-	b, err := bcrypt.GenerateFromPassword([]byte(s), bcrypt.MinCost)
+func (u *User) ComparePassword(password string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)) == nil
+}
+
+func encryptString(password string) (string, error) {
+	b, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
 		return "", err
 	}

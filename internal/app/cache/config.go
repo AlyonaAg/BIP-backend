@@ -1,13 +1,10 @@
-package apiserver
+package cache
 
 import (
 	"errors"
 	"os"
 
 	"github.com/pelletier/go-toml"
-
-	"BIP_backend/internal/app/cache"
-	"BIP_backend/internal/app/store"
 )
 
 var (
@@ -15,9 +12,9 @@ var (
 )
 
 type Config struct {
-	BindAddr string
-	Store    *store.Config
-	Cache    *cache.Config
+	Port           string
+	Password       string
+	ExpireDuration int64
 }
 
 func NewConfig() (*Config, error) {
@@ -31,19 +28,9 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
-	storeConfig, err := store.NewConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	cacheConfig, err := cache.NewConfig()
-	if err != nil {
-		return nil, err
-	}
-
 	return &Config{
-		BindAddr: config.Get("server.bind_addr").(string),
-		Store:    storeConfig,
-		Cache:    cacheConfig,
+		Port:           config.Get("cache.port").(string),
+		Password:       config.Get("cache.password").(string),
+		ExpireDuration: config.Get("cache.expire_duration").(int64),
 	}, nil
 }
