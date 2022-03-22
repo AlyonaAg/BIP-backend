@@ -20,7 +20,7 @@ func init() {
 // @version         1.0
 // @description     API for photographer search app
 
-// @host      localhost:8080
+// @host      10.0.0.103:8080
 // @BasePath  /api
 
 // @securityDefinitions.apikey ApiKeyAuth

@@ -24,11 +24,14 @@ func (ur *UserRepository) Create(u *model.User) error {
 		return err
 	}
 
+	baseRating := 5
+	baseMoney := 1000
 	if err := store.db.QueryRow(
 		`INSERT INTO "user" (username, password, first_name, second_name,`+
-			`is_photographer, avatar_url, phone_number, mail) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+			`is_photographer, avatar_url, phone_number, mail, money, rating) VALUES ($1, $2, $3,`+
+			`$4, $5, $6, $7, $8, $9, $10) RETURNING id`,
 		u.Username, u.Password, u.FirstName, u.SecondName, u.IsPhotographer, u.AvatarURL,
-		u.PhoneNumber, u.Mail,
+		u.PhoneNumber, u.Mail, baseMoney, baseRating,
 	).Scan(
 		&u.ID,
 	); err != nil {
@@ -46,7 +49,7 @@ func (ur *UserRepository) FindByID(id int) (*model.User, error) {
 	var u = &model.User{}
 	if err := store.db.QueryRow(
 		`SELECT id, username, password, first_name, second_name, is_photographer, `+
-			`avatar_url, phone_number, mail FROM "user" WHERE id = $1`,
+			`avatar_url, phone_number, mail, money, rating FROM "user" WHERE id = $1`,
 		id,
 	).Scan(
 		&u.ID,
@@ -58,6 +61,8 @@ func (ur *UserRepository) FindByID(id int) (*model.User, error) {
 		&u.AvatarURL,
 		&u.PhoneNumber,
 		&u.Mail,
+		&u.Money,
+		&u.Rating,
 	); err != nil {
 		return nil, err
 	}
@@ -73,7 +78,7 @@ func (ur *UserRepository) FindByUsername(username string) (*model.User, error) {
 	var u = &model.User{}
 	if err := store.db.QueryRow(
 		`SELECT id, username, password, first_name, second_name, is_photographer, `+
-			`avatar_url, phone_number, mail FROM "user" WHERE username = $1`,
+			`avatar_url, phone_number, mail, money, rating FROM "user" WHERE username = $1`,
 		username,
 	).Scan(
 		&u.ID,
@@ -85,10 +90,38 @@ func (ur *UserRepository) FindByUsername(username string) (*model.User, error) {
 		&u.AvatarURL,
 		&u.PhoneNumber,
 		&u.Mail,
+		&u.Money,
+		&u.Rating,
 	); err != nil {
 		return nil, err
 	}
 	return u, nil
+}
+
+func (ur *UserRepository) WithdrawMoney(username string, money int) error {
+	store, err := ur.GetStore()
+	if err != nil {
+		return err
+	}
+
+	if _, err := store.db.Exec(
+		`UPDATE "user" SET money = money - $1 WHERE username = $2`, money, username); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ur *UserRepository) PutMoney(username string, money int) error {
+	store, err := ur.GetStore()
+	if err != nil {
+		return err
+	}
+
+	if _, err := store.db.Exec(
+		`UPDATE "user" SET money = money + $1 WHERE username = $2`, money, username); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (ur *UserRepository) GetStore() (*Store, error) {
