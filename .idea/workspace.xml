@@ -4,30 +4,9 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1c14806f-dae6-4bcb-9e18-527c04d0111f" name="Changes" comment="Fixed CORS">
-      <change afterPath="$PROJECT_DIR$/internal/app/apiserver/request.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/internal/app/model/order.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/internal/app/store/orderrepo.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/internal/app/store/photographerrepo.go" afterDir="false" />
+    <list default="true" id="1c14806f-dae6-4bcb-9e18-527c04d0111f" name="Changes" comment="Adding API for create and confirm order">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmd/apiserver/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/apiserver/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/docs.go" beforeDir="false" afterPath="$PROJECT_DIR$/docs/docs.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/swagger.json" beforeDir="false" afterPath="$PROJECT_DIR$/docs/swagger.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/swagger.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docs/swagger.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/app/apiserver/apiserver.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/apiserver/apiserver.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/app/apiserver/response.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/apiserver/response.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/app/apiserver/routerfunction.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/apiserver/routerfunction.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/app/model/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/model/user.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/app/store/store.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/store/store.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/app/store/userrepository.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/store/userrepo.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/service/auth/auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/service/auth/auth.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/middleware/auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/middleware/auth.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/migrations/000001_init.up.sql" beforeDir="false" afterPath="$PROJECT_DIR$/migrations/000001_init.up.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -158,7 +137,8 @@
     <MESSAGE value="Adding two-factor authentication &amp; fixed" />
     <MESSAGE value="Adding integration with swagger &amp; fixed middleware" />
     <MESSAGE value="Fixed CORS" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed CORS" />
+    <MESSAGE value="Adding API for create and confirm order" />
+    <option name="LAST_COMMIT_MESSAGE" value="Adding API for create and confirm order" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>
