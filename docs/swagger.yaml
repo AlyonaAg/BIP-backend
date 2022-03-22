@@ -140,7 +140,7 @@ definitions:
       username:
         type: string
     type: object
-host: 10.0.0.103:8080
+host: 51.250.22.74:8080
 info:
   contact: {}
   description: API for photographer search app

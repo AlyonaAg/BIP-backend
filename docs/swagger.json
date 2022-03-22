@@ -6,7 +6,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "10.0.0.103:8080",
+    "host": "51.250.22.74:8080",
     "basePath": "/api",
     "paths": {
         "/auth": {
