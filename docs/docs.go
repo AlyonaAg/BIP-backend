@@ -36,7 +36,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/apiserver.requestSessionsCreate"
+                            "$ref": "#/definitions/apiserver.structRequestSessionsCreate"
                         }
                     }
                 ],
@@ -87,7 +87,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/apiserver.request2Factor"
+                            "$ref": "#/definitions/apiserver.structRequest2Factor"
                         }
                     }
                 ],
@@ -100,6 +100,834 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/accept": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client api"
+                ],
+                "summary": "Accept photographer",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id order",
+                        "name": "id_order",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id order",
+                        "name": "id_photographer",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "id order",
+                        "name": "is_accept",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.successResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.successResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client api"
+                ],
+                "summary": "Order cancellation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id order",
+                        "name": "id_order",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "id user",
+                        "name": "id_user",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "review",
+                        "name": "review",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structRequestReview"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.successResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/create-order": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client api"
+                ],
+                "summary": "Create order",
+                "parameters": [
+                    {
+                        "description": "order data",
+                        "name": "order",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.OrderData"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Order"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/finish-order": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client api"
+                ],
+                "summary": "Finish order",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id order",
+                        "name": "id_order",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structResponseFinishOrder"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/get-preview": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client api"
+                ],
+                "summary": "Get preview",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id order",
+                        "name": "id_order",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structResponseGetPreview"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/offer": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client api"
+                ],
+                "summary": "Get list agreed photographers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id order",
+                        "name": "id_order",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structResponseAgreedPhotographers"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.successResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/photographers": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client api"
+                ],
+                "summary": "Get list all photographers",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structResponseAllPhotographers"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/qrcode": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client api"
+                ],
+                "summary": "Get QR-code",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id order",
+                        "name": "id_order",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id user",
+                        "name": "id_user",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "latitude",
+                        "name": "latitude",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "longitude",
+                        "name": "longitude",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structResponseCreateQRCode"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/review": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client api"
+                ],
+                "summary": "Client feedback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id order",
+                        "name": "id_order",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "id client",
+                        "name": "id_client",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "review",
+                        "name": "review",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structRequestReview"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.successResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/get-money": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "User money data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id user",
+                        "name": "id_user",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structResponseGetMoney"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/ph/confirm-qrcode": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "photographer api"
+                ],
+                "summary": "Confirm QR-code",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "qr-code",
+                        "name": "qrcode",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structResponseCreateQRCode"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/ph/orders": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "photographer api"
+                ],
+                "summary": "Get order list",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structResponseGetOrder"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/ph/review": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "photographer api"
+                ],
+                "summary": "Photographer feedback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id order",
+                        "name": "id_order",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "id photographer",
+                        "name": "id_user",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "review",
+                        "name": "review",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structRequestReview"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.successResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/ph/select": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "The photographer chooses which orders he is ready to accept",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "photographer api"
+                ],
+                "summary": "Select order",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id order",
+                        "name": "id_order",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id photographer",
+                        "name": "id_photographer",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.successResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.successResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/ph/upload": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "photographer api"
+                ],
+                "summary": "Upload link",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id order",
+                        "name": "id_order",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "link",
+                        "name": "link",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structRequestUpload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.successResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.successResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "Info about user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id user",
+                        "name": "id_user",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structBaseUserInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/apiserver.errorResponse"
                         }
@@ -141,13 +969,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/apiserver.structResponseUserCreate"
+                            "$ref": "#/definitions/apiserver.successResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/apiserver.structResponseUserCreate"
+                            "$ref": "#/definitions/apiserver.successResponse"
                         }
                     },
                     "500": {
@@ -169,7 +997,65 @@ const docTemplate = `{
                 }
             }
         },
-        "apiserver.request2Factor": {
+        "apiserver.structBaseUserInfo": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "comment": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Comment"
+                    }
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_photographer": {
+                    "type": "boolean"
+                },
+                "list_photo_profile": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "second_name": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "apiserver.structOrder": {
+            "type": "object",
+            "properties": {
+                "client": {
+                    "$ref": "#/definitions/apiserver.structBaseUserInfo"
+                },
+                "coordinates": {
+                    "$ref": "#/definitions/model.Location"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "order_cost": {
+                    "type": "integer"
+                }
+            }
+        },
+        "apiserver.structRequest2Factor": {
             "type": "object",
             "properties": {
                 "code": {
@@ -177,13 +1063,35 @@ const docTemplate = `{
                 }
             }
         },
-        "apiserver.requestSessionsCreate": {
+        "apiserver.structRequestReview": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer"
+                }
+            }
+        },
+        "apiserver.structRequestSessionsCreate": {
             "type": "object",
             "properties": {
                 "password": {
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "apiserver.structRequestUpload": {
+            "type": "object",
+            "properties": {
+                "url_origin": {
+                    "type": "string"
+                },
+                "url_watermark": {
                     "type": "string"
                 }
             }
@@ -195,7 +1103,75 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/model.User"
+                    "$ref": "#/definitions/apiserver.structBaseUserInfo"
+                }
+            }
+        },
+        "apiserver.structResponseAgreedPhotographers": {
+            "type": "object",
+            "properties": {
+                "photographers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiserver.structBaseUserInfo"
+                    }
+                }
+            }
+        },
+        "apiserver.structResponseAllPhotographers": {
+            "type": "object",
+            "properties": {
+                "photographers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiserver.structBaseUserInfo"
+                    }
+                }
+            }
+        },
+        "apiserver.structResponseCreateQRCode": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "apiserver.structResponseFinishOrder": {
+            "type": "object",
+            "properties": {
+                "url_original": {
+                    "type": "string"
+                }
+            }
+        },
+        "apiserver.structResponseGetMoney": {
+            "type": "object",
+            "properties": {
+                "money": {
+                    "type": "integer"
+                }
+            }
+        },
+        "apiserver.structResponseGetOrder": {
+            "type": "object",
+            "properties": {
+                "order_data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiserver.structOrder"
+                    }
+                }
+            }
+        },
+        "apiserver.structResponseGetPreview": {
+            "type": "object",
+            "properties": {
+                "url_watermark": {
+                    "type": "string"
                 }
             }
         },
@@ -207,7 +1183,7 @@ const docTemplate = `{
                 }
             }
         },
-        "apiserver.structResponseUserCreate": {
+        "apiserver.successResponse": {
             "type": "object",
             "properties": {
                 "success": {
@@ -215,35 +1191,80 @@ const docTemplate = `{
                 }
             }
         },
-        "model.User": {
+        "model.Comment": {
             "type": "object",
             "properties": {
                 "avatar_url": {
                     "type": "string"
                 },
-                "first_name": {
+                "client_id": {
+                    "type": "integer"
+                },
+                "content": {
                     "type": "string"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Location": {
+            "type": "object",
+            "properties": {
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                }
+            }
+        },
+        "model.Order": {
+            "type": "object",
+            "properties": {
+                "client_current_location": {
+                    "$ref": "#/definitions/model.Location"
+                },
+                "client_id": {
+                    "type": "integer"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "coordinates": {
+                    "$ref": "#/definitions/model.Location"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "is_photographer": {
-                    "type": "boolean"
+                "order_cost": {
+                    "type": "integer"
                 },
-                "mail": {
+                "order_state": {
                     "type": "string"
                 },
-                "password": {
+                "photographer_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.OrderData": {
+            "type": "object",
+            "properties": {
+                "client_id": {
+                    "type": "integer"
+                },
+                "comment": {
                     "type": "string"
                 },
-                "phone_number": {
-                    "type": "string"
+                "coordinates": {
+                    "$ref": "#/definitions/model.Location"
                 },
-                "second_name": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
+                "order_cost": {
+                    "type": "integer"
                 }
             }
         },
@@ -289,7 +1310,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "51.250.22.74:8080",
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "BIP API",

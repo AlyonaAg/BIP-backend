@@ -1,16 +1,25 @@
-version: '3.8'
+version: '3.3'
 
 services:
   bip_backend:
     container_name: container-backend
     build: ./
-    command: ./BIP_backend
+    #command: ./BIP_backend
     ports:
       - "8080:8080"
+    volumes:
+      - ./.storage:/back/.storage
+      - ./cmd:/back/cmd
+      - ./configs:/back/configs
+      - ./docs:/back/docs
+      - ./internal:/back/internal
+      - ./middleware:/back/middleware
+      - ./migrations:/back/migrations
     depends_on:
       - db
       - pgadmin
       - redis
+      - rediskey
 
   db:
     restart: always
@@ -46,3 +55,13 @@ services:
     command: redis-server --requirepass admin
     ports:
       - "6379:6379"
+
+  rediskey:
+    restart: always
+    container_name: container-redis2
+    image: redis
+    volumes:
+      - ./.storage/redis2/data:/data
+    command: redis-server --requirepass admin
+    ports:
+      - "6381:6379"

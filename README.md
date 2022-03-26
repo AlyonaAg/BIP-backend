@@ -1,7 +1,7 @@
 # BIP-backend
 
 ## Запуск:
-sudo docker-compose up —build bip_backend
+sudo docker-compose up --build bip_backend
 
 ## Требования к данным:
   1) *username*: обязательное поле, длина [2, 30], (a-zA-Z0-9);

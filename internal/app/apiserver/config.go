@@ -1,12 +1,13 @@
 package apiserver
 
 import (
+	"BIP_backend/internal/app/cache/keycache"
+	"BIP_backend/internal/app/cache/onetimepasscache"
 	"errors"
 	"os"
 
 	"github.com/pelletier/go-toml"
 
-	"BIP_backend/internal/app/cache"
 	"BIP_backend/internal/app/store"
 )
 
@@ -15,9 +16,10 @@ var (
 )
 
 type Config struct {
-	BindAddr string
-	Store    *store.Config
-	Cache    *cache.Config
+	BindAddr  string
+	Store     *store.Config
+	PassCache *onetimepasscache.Config
+	KeyCache  *keycache.Config
 }
 
 func NewConfig() (*Config, error) {
@@ -36,14 +38,20 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
-	cacheConfig, err := cache.NewConfig()
+	passCacheConfig, err := onetimepasscache.NewConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	keyCacheConfig, err := keycache.NewConfig()
 	if err != nil {
 		return nil, err
 	}
 
 	return &Config{
-		BindAddr: config.Get("server.bind_addr").(string),
-		Store:    storeConfig,
-		Cache:    cacheConfig,
+		BindAddr:  config.Get("server.bind_addr").(string),
+		Store:     storeConfig,
+		PassCache: passCacheConfig,
+		KeyCache:  keyCacheConfig,
 	}, nil
 }

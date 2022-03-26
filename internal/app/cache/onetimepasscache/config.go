@@ -1,4 +1,4 @@
-package cache
+package onetimepasscache
 
 import (
 	"errors"
@@ -29,8 +29,8 @@ func NewConfig() (*Config, error) {
 	}
 
 	return &Config{
-		Port:           config.Get("cache.port").(string),
-		Password:       config.Get("cache.password").(string),
-		ExpireDuration: config.Get("cache.expire_duration").(int64),
+		Port:           config.Get("one_time_pass_cache.port").(string),
+		Password:       config.Get("one_time_pass_cache.password").(string),
+		ExpireDuration: config.Get("one_time_pass_cache.expire_duration").(int64),
 	}, nil
 }
