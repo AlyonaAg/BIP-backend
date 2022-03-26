@@ -36,7 +36,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/apiserver.requestSessionsCreate"
+                            "$ref": "#/definitions/apiserver.structRequestSessionsCreate"
                         }
                     }
                 ],
@@ -87,7 +87,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/apiserver.request2Factor"
+                            "$ref": "#/definitions/apiserver.structRequest2Factor"
                         }
                     }
                 ],
@@ -102,6 +102,255 @@ const docTemplate = `{
                         "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/accept": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client api"
+                ],
+                "summary": "Accept photographer",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id order",
+                        "name": "id_order",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id order",
+                        "name": "id_photographer",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "id order",
+                        "name": "is_accept",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.successResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.successResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/create-order": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client api"
+                ],
+                "summary": "Create order",
+                "parameters": [
+                    {
+                        "description": "order data",
+                        "name": "order",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.OrderData"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Order"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/photographers": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client api"
+                ],
+                "summary": "Get list agreed photographers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id order",
+                        "name": "id_order",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structResponseAgreedPhotographers"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.successResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/ph/orders": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "photographer api"
+                ],
+                "summary": "Get order list",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structResponseGetOrder"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/ph/select": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "The photographer chooses which orders he is ready to accept",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "photographer api"
+                ],
+                "summary": "Select order",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id order",
+                        "name": "id_order",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id photographer",
+                        "name": "id_photographer",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.successResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.successResponse"
                         }
                     },
                     "500": {
@@ -141,13 +390,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/apiserver.structResponseUserCreate"
+                            "$ref": "#/definitions/apiserver.successResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/apiserver.structResponseUserCreate"
+                            "$ref": "#/definitions/apiserver.successResponse"
                         }
                     },
                     "500": {
@@ -169,7 +418,62 @@ const docTemplate = `{
                 }
             }
         },
-        "apiserver.request2Factor": {
+        "apiserver.structBaseUserInfo": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "comment": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "list_photo_profile": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "second_name": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "apiserver.structOrder": {
+            "type": "object",
+            "properties": {
+                "client": {
+                    "$ref": "#/definitions/apiserver.structBaseUserInfo"
+                },
+                "coordinates": {
+                    "$ref": "#/definitions/model.Location"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "order_cost": {
+                    "type": "integer"
+                }
+            }
+        },
+        "apiserver.structRequest2Factor": {
             "type": "object",
             "properties": {
                 "code": {
@@ -177,7 +481,7 @@ const docTemplate = `{
                 }
             }
         },
-        "apiserver.requestSessionsCreate": {
+        "apiserver.structRequestSessionsCreate": {
             "type": "object",
             "properties": {
                 "password": {
@@ -195,7 +499,29 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/model.User"
+                    "$ref": "#/definitions/apiserver.structBaseUserInfo"
+                }
+            }
+        },
+        "apiserver.structResponseAgreedPhotographers": {
+            "type": "object",
+            "properties": {
+                "photographers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiserver.structBaseUserInfo"
+                    }
+                }
+            }
+        },
+        "apiserver.structResponseGetOrder": {
+            "type": "object",
+            "properties": {
+                "order_data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiserver.structOrder"
+                    }
                 }
             }
         },
@@ -207,7 +533,7 @@ const docTemplate = `{
                 }
             }
         },
-        "apiserver.structResponseUserCreate": {
+        "apiserver.successResponse": {
             "type": "object",
             "properties": {
                 "success": {
@@ -215,35 +541,60 @@ const docTemplate = `{
                 }
             }
         },
-        "model.User": {
+        "model.Location": {
             "type": "object",
             "properties": {
-                "avatar_url": {
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                }
+            }
+        },
+        "model.Order": {
+            "type": "object",
+            "properties": {
+                "client_current_location": {
+                    "$ref": "#/definitions/model.Location"
+                },
+                "client_id": {
+                    "type": "integer"
+                },
+                "comment": {
                     "type": "string"
                 },
-                "first_name": {
-                    "type": "string"
+                "coordinates": {
+                    "$ref": "#/definitions/model.Location"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "is_photographer": {
-                    "type": "boolean"
+                "order_cost": {
+                    "type": "integer"
                 },
-                "mail": {
+                "order_state": {
                     "type": "string"
                 },
-                "password": {
+                "photographer_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.OrderData": {
+            "type": "object",
+            "properties": {
+                "client_id": {
+                    "type": "integer"
+                },
+                "comment": {
                     "type": "string"
                 },
-                "phone_number": {
-                    "type": "string"
+                "coordinates": {
+                    "$ref": "#/definitions/model.Location"
                 },
-                "second_name": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
+                "order_cost": {
+                    "type": "integer"
                 }
             }
         },
@@ -289,7 +640,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "51.250.22.74:8080",
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "BIP API",

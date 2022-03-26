@@ -12,8 +12,9 @@ import (
 
 type tokenClaims struct {
 	jwt.StandardClaims
-	Username   string
-	Authorized bool
+	UserID         int
+	IsPhotographer bool
+	Authorized     bool
 }
 
 type Authorizer struct {
@@ -45,7 +46,8 @@ func (a *Authorizer) GenerateToken(u *model.User, authorized bool) (string, erro
 					time.Hour * time.Duration(config.expireDuration),
 				).Unix(),
 			},
-			u.Username,
+			u.ID,
+			u.IsPhotographer,
 			authorized,
 		})
 
@@ -56,10 +58,11 @@ func (a *Authorizer) GenerateToken(u *model.User, authorized bool) (string, erro
 	return signedToken, nil
 }
 
-func (a *Authorizer) ParseToken(tokenString string) (string /*username*/, bool /*authorized*/, error) {
+func (a *Authorizer) ParseToken(tokenString string) (int /*user id*/, bool, /*is photographer*/
+	bool /*authorized*/, error) {
 	config, err := a.GetConfig()
 	if err != nil {
-		return "", false, err
+		return 0, false, false, err
 	}
 
 	token, err := jwt.ParseWithClaims(tokenString,
@@ -68,15 +71,15 @@ func (a *Authorizer) ParseToken(tokenString string) (string /*username*/, bool /
 			return []byte(config.signingKey), nil
 		})
 	if err != nil {
-		return "", false, err
+		return 0, false, false, err
 	}
 
 	claims, ok := token.Claims.(*tokenClaims)
 	if !ok || !token.Valid {
-		return "", false, errors.New("invalid token")
+		return 0, false, false, errors.New("invalid token")
 	}
 
-	return claims.Username, claims.Authorized, nil
+	return claims.UserID, claims.IsPhotographer, claims.Authorized, nil
 }
 
 func (a *Authorizer) GeneratePassword() (string, error) {

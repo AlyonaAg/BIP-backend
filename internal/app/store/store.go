@@ -12,9 +12,11 @@ import (
 )
 
 type Store struct {
-	config         *Config
-	db             *sql.DB
-	userRepository *UserRepository
+	config                 *Config
+	db                     *sql.DB
+	userRepository         *UserRepository
+	orderRepository        *OrderRepository
+	photographerRepository *PhotographerRepository
 }
 
 func NewStore(config *Config) *Store {
@@ -72,6 +74,34 @@ func (s *Store) User() *UserRepository {
 	return ur
 }
 
+func (s *Store) Order() *OrderRepository {
+	or, _ := s.GetOrderRepository()
+	if or != nil {
+		return or
+	}
+
+	s.SetOrderRepository(&OrderRepository{
+		store: s,
+	})
+
+	or, _ = s.GetOrderRepository()
+	return or
+}
+
+func (s *Store) Photographer() *PhotographerRepository {
+	phr, _ := s.GetPhotographerRepository()
+	if phr != nil {
+		return phr
+	}
+
+	s.SetPhotographerRepository(&PhotographerRepository{
+		store: s,
+	})
+
+	phr, _ = s.GetPhotographerRepository()
+	return phr
+}
+
 func (s *Store) Close() error {
 	db, err := s.GetDB()
 	if err != nil {
@@ -95,6 +125,20 @@ func (s *Store) GetUserRepository() (*UserRepository, error) {
 	return s.userRepository, nil
 }
 
+func (s *Store) GetOrderRepository() (*OrderRepository, error) {
+	if s.orderRepository == nil {
+		return nil, errors.New("empty order repository")
+	}
+	return s.orderRepository, nil
+}
+
+func (s *Store) GetPhotographerRepository() (*PhotographerRepository, error) {
+	if s.photographerRepository == nil {
+		return nil, errors.New("empty photographer repository")
+	}
+	return s.photographerRepository, nil
+}
+
 func (s *Store) GetDB() (*sql.DB, error) {
 	if s.db == nil {
 		return nil, errors.New("empty DB")
@@ -104,6 +148,14 @@ func (s *Store) GetDB() (*sql.DB, error) {
 
 func (s *Store) SetUserRepository(userRepository *UserRepository) {
 	s.userRepository = userRepository
+}
+
+func (s *Store) SetOrderRepository(orderRepository *OrderRepository) {
+	s.orderRepository = orderRepository
+}
+
+func (s *Store) SetPhotographerRepository(photographerRepository *PhotographerRepository) {
+	s.photographerRepository = photographerRepository
 }
 
 func (s *Store) SetDB(db *sql.DB) {

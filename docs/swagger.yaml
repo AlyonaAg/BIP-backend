@@ -5,12 +5,48 @@ definitions:
       error:
         type: string
     type: object
-  apiserver.request2Factor:
+  apiserver.structBaseUserInfo:
+    properties:
+      avatar_url:
+        type: string
+      comment:
+        items:
+          type: string
+        type: array
+      first_name:
+        type: string
+      id:
+        type: integer
+      list_photo_profile:
+        items:
+          type: string
+        type: array
+      phone_number:
+        type: string
+      rating:
+        type: number
+      second_name:
+        type: string
+      username:
+        type: string
+    type: object
+  apiserver.structOrder:
+    properties:
+      client:
+        $ref: '#/definitions/apiserver.structBaseUserInfo'
+      coordinates:
+        $ref: '#/definitions/model.Location'
+      id:
+        type: integer
+      order_cost:
+        type: integer
+    type: object
+  apiserver.structRequest2Factor:
     properties:
       code:
         type: string
     type: object
-  apiserver.requestSessionsCreate:
+  apiserver.structRequestSessionsCreate:
     properties:
       password:
         type: string
@@ -22,38 +58,68 @@ definitions:
       jwt:
         type: string
       user:
-        $ref: '#/definitions/model.User'
+        $ref: '#/definitions/apiserver.structBaseUserInfo'
+    type: object
+  apiserver.structResponseAgreedPhotographers:
+    properties:
+      photographers:
+        items:
+          $ref: '#/definitions/apiserver.structBaseUserInfo'
+        type: array
+    type: object
+  apiserver.structResponseGetOrder:
+    properties:
+      order_data:
+        items:
+          $ref: '#/definitions/apiserver.structOrder'
+        type: array
     type: object
   apiserver.structResponseSessionsCreate:
     properties:
       jwt:
         type: string
     type: object
-  apiserver.structResponseUserCreate:
+  apiserver.successResponse:
     properties:
       success:
         type: boolean
     type: object
-  model.User:
+  model.Location:
     properties:
-      avatar_url:
+      latitude:
+        type: number
+      longitude:
+        type: number
+    type: object
+  model.Order:
+    properties:
+      client_current_location:
+        $ref: '#/definitions/model.Location'
+      client_id:
+        type: integer
+      comment:
         type: string
-      first_name:
-        type: string
+      coordinates:
+        $ref: '#/definitions/model.Location'
       id:
         type: integer
-      is_photographer:
-        type: boolean
-      mail:
+      order_cost:
+        type: integer
+      order_state:
         type: string
-      password:
+      photographer_id:
+        type: integer
+    type: object
+  model.OrderData:
+    properties:
+      client_id:
+        type: integer
+      comment:
         type: string
-      phone_number:
-        type: string
-      second_name:
-        type: string
-      username:
-        type: string
+      coordinates:
+        $ref: '#/definitions/model.Location'
+      order_cost:
+        type: integer
     type: object
   model.UserData:
     properties:
@@ -74,7 +140,7 @@ definitions:
       username:
         type: string
     type: object
-host: localhost:8080
+host: 51.250.22.74:8080
 info:
   contact: {}
   description: API for photographer search app
@@ -92,7 +158,7 @@ paths:
         name: user_auth
         required: true
         schema:
-          $ref: '#/definitions/apiserver.requestSessionsCreate'
+          $ref: '#/definitions/apiserver.structRequestSessionsCreate'
       produces:
       - application/json
       responses:
@@ -122,7 +188,7 @@ paths:
         name: code
         required: true
         schema:
-          $ref: '#/definitions/apiserver.request2Factor'
+          $ref: '#/definitions/apiserver.structRequest2Factor'
       produces:
       - application/json
       responses:
@@ -143,6 +209,163 @@ paths:
       summary: Auth2Factor
       tags:
       - api
+  /client/accept:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: id order
+        in: query
+        name: id_order
+        required: true
+        type: integer
+      - description: id order
+        in: query
+        name: id_photographer
+        required: true
+        type: integer
+      - description: id order
+        in: query
+        name: is_accept
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.successResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.successResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Accept photographer
+      tags:
+      - client api
+  /client/create-order:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: order data
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/model.OrderData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Order'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create order
+      tags:
+      - client api
+  /client/photographers:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id order
+        in: query
+        name: id_order
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structResponseAgreedPhotographers'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.successResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get list agreed photographers
+      tags:
+      - client api
+  /ph/orders:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structResponseGetOrder'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get order list
+      tags:
+      - photographer api
+  /ph/select:
+    patch:
+      consumes:
+      - application/json
+      description: The photographer chooses which orders he is ready to accept
+      parameters:
+      - description: id order
+        in: query
+        name: id_order
+        required: true
+        type: integer
+      - description: id photographer
+        in: query
+        name: id_photographer
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.successResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.successResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Select order
+      tags:
+      - photographer api
   /registration:
     post:
       consumes:
@@ -161,11 +384,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/apiserver.structResponseUserCreate'
+            $ref: '#/definitions/apiserver.successResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/apiserver.structResponseUserCreate'
+            $ref: '#/definitions/apiserver.successResponse'
         "500":
           description: Internal Server Error
           schema:

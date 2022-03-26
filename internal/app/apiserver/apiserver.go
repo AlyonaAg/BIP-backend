@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
@@ -87,22 +86,27 @@ func (s *Server) configureRouter() error {
 		return err
 	}
 
-	//router.Use(middleware.CORSMiddleware())
-	router.Use(cors.Default())
-
 	api := router.Group("/api")
 	{
 		api.POST("/registration", s.handleUserCreate())
 		api.POST("/auth", s.handleSessionsCreate())
+
 		api.POST("/auth2fa", middleware.UserIdentityWithUnauthorizedToken(), s.handler2Factor())
 
-		// temporarily for testing
-		apiTest := api.Group("/test")
-		apiTest.Use(middleware.UserIdentityWithAuthorizedToken())
+		apiOrdinaryUser := api.Group("/client").
+			Use(middleware.UserIdentityWithAuthorizedToken(), middleware.OrdinaryUserIdentity())
 		{
-			apiTest.GET("/test_auth", s.handleTestAuth())
+			apiOrdinaryUser.POST("/create-order", s.handlerCreateOrder())
+			apiOrdinaryUser.GET("/photographers", s.handlerGetAgreedPhotographer())
+			apiOrdinaryUser.PATCH("/accept", s.handlerAccept())
 		}
 
+		apiPhotographer := api.Group("/ph").
+			Use(middleware.UserIdentityWithAuthorizedToken(), middleware.PhotographerIdentity())
+		{
+			apiPhotographer.GET("/orders", s.handlerGetOrder())
+			apiPhotographer.PATCH("/select", s.handlerSelect())
+		}
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	return nil
