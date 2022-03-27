@@ -956,7 +956,14 @@ func (s *Server) handlerCancel() gin.HandlerFunc {
 			}
 		}
 
-		store.User().PutMoneyByID(clientID, int(float64(order.OrderCost)-float64(order.OrderCost)*0.3))
+		var refundAmount int
+		if order.OrderState == model.Created || order.OrderState == model.AgreedPhotographer ||
+			order.OrderState == model.AgreedClient {
+			refundAmount = order.OrderCost
+		} else {
+			refundAmount = int(float64(order.OrderCost) - float64(order.OrderCost)*0.3)
+		}
+		store.User().PutMoneyByID(clientID, refundAmount)
 
 		if err := store.Order().UpdateOrderState(model.Finish, orderID); err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
