@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1c14806f-dae6-4bcb-9e18-527c04d0111f" name="Changes" comment="Fixed CORS">
+    <list default="true" id="1c14806f-dae6-4bcb-9e18-527c04d0111f" name="Changes" comment="Adding API for create and confirm order">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
@@ -42,7 +42,7 @@
       </list>
     </option>
   </component>
-  <component name="GOROOT" url="file:///usr/lib/go-1.13" />
+  <component name="GOROOT" url="file:///usr/local/go1.18.linux-amd64" />
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
@@ -86,13 +86,15 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="configurable..is.expanded" value="false" />
+    <property name="configurable.GoLibrariesConfigurable.is.expanded" value="true" />
     <property name="go.format.on.save.advertiser.fired" value="true" />
     <property name="go.formatter.settings.were.checked" value="true" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.modules.go.list.on.any.changes.was.set" value="true" />
     <property name="go.watchers.conflict.with.on.save.actions.check.performed" value="true" />
     <property name="last_opened_file_path" value="$USER_HOME$" />
-    <property name="settings.editor.selected.configurable" value="preference.GoLinterConfigurable" />
+    <property name="settings.editor.selected.configurable" value="com.goide.configuration.GoLibrariesConfigurableProvider" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -136,7 +138,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="authorization" />
+                        <option value="create-and-confirm-order-API" />
                       </list>
                     </value>
                   </entry>
@@ -156,7 +158,8 @@
     <MESSAGE value="Adding two-factor authentication &amp; fixed" />
     <MESSAGE value="Adding integration with swagger &amp; fixed middleware" />
     <MESSAGE value="Fixed CORS" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed CORS" />
+    <MESSAGE value="Adding API for create and confirm order" />
+    <option name="LAST_COMMIT_MESSAGE" value="Adding API for create and confirm order" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>
