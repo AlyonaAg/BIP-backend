@@ -17,6 +17,7 @@ type Store struct {
 	userRepository         *UserRepository
 	orderRepository        *OrderRepository
 	photographerRepository *PhotographerRepository
+	commentRepository      *CommentRepository
 }
 
 func NewStore(config *Config) *Store {
@@ -102,6 +103,20 @@ func (s *Store) Photographer() *PhotographerRepository {
 	return phr
 }
 
+func (s *Store) Comment() *CommentRepository {
+	phr, _ := s.GetCommentRepository()
+	if phr != nil {
+		return phr
+	}
+
+	s.SetCommentRepository(&CommentRepository{
+		store: s,
+	})
+
+	phr, _ = s.GetCommentRepository()
+	return phr
+}
+
 func (s *Store) Close() error {
 	db, err := s.GetDB()
 	if err != nil {
@@ -139,6 +154,13 @@ func (s *Store) GetPhotographerRepository() (*PhotographerRepository, error) {
 	return s.photographerRepository, nil
 }
 
+func (s *Store) GetCommentRepository() (*CommentRepository, error) {
+	if s.commentRepository == nil {
+		return nil, errors.New("empty comment repository")
+	}
+	return s.commentRepository, nil
+}
+
 func (s *Store) GetDB() (*sql.DB, error) {
 	if s.db == nil {
 		return nil, errors.New("empty DB")
@@ -156,6 +178,10 @@ func (s *Store) SetOrderRepository(orderRepository *OrderRepository) {
 
 func (s *Store) SetPhotographerRepository(photographerRepository *PhotographerRepository) {
 	s.photographerRepository = photographerRepository
+}
+
+func (s *Store) SetCommentRepository(commentRepository *CommentRepository) {
+	s.commentRepository = commentRepository
 }
 
 func (s *Store) SetDB(db *sql.DB) {

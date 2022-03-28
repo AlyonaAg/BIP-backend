@@ -1,4 +1,4 @@
-package cache
+package keycache
 
 import (
 	"errors"
@@ -25,6 +25,7 @@ func (c *Cache) Open() error {
 		return err
 	}
 
+	log.Print(config.Port)
 	cache := redis.NewClient(&redis.Options{
 		Addr:     config.Port,
 		Password: config.Password,

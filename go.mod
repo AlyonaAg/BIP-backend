@@ -18,6 +18,8 @@ require (
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 )
 
+require github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e // indirect
+
 require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/containerd/containerd v1.6.1 // indirect

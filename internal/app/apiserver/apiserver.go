@@ -9,16 +9,18 @@ import (
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 
 	_ "BIP_backend/docs"
-	"BIP_backend/internal/app/cache"
+	"BIP_backend/internal/app/cache/keycache"
+	"BIP_backend/internal/app/cache/onetimepasscache"
 	"BIP_backend/internal/app/store"
 	"BIP_backend/middleware"
 )
 
 type Server struct {
-	config *Config
-	router *gin.Engine
-	store  *store.Store
-	cache  *cache.Cache
+	config    *Config
+	router    *gin.Engine
+	store     *store.Store
+	passCache *onetimepasscache.Cache
+	keyCache  *keycache.Cache
 }
 
 func NewServer() (*Server, error) {
@@ -28,10 +30,11 @@ func NewServer() (*Server, error) {
 	}
 
 	return &Server{
-		config: config,
-		router: gin.Default(),
-		store:  store.NewStore(config.Store),
-		cache:  cache.NewCache(config.Cache),
+		config:    config,
+		router:    gin.Default(),
+		store:     store.NewStore(config.Store),
+		passCache: onetimepasscache.NewCache(config.PassCache),
+		keyCache:  keycache.NewCache(config.KeyCache),
 	}, nil
 }
 
@@ -69,12 +72,21 @@ func (s *Server) openStore() error {
 }
 
 func (s *Server) openCache() error {
-	cacheServer, err := s.GetCache()
+	passCacheServer, err := s.GetPassCache()
 	if err != nil {
 		return errors.New("empty cache")
 	}
 
-	if err := cacheServer.Open(); err != nil {
+	if err := passCacheServer.Open(); err != nil {
+		return err
+	}
+
+	keyCacheServer, err := s.GetKeyCache()
+	if err != nil {
+		return errors.New("empty cache")
+	}
+
+	if err := keyCacheServer.Open(); err != nil {
 		return err
 	}
 	return nil
@@ -92,20 +104,31 @@ func (s *Server) configureRouter() error {
 		api.POST("/auth", s.handleSessionsCreate())
 
 		api.POST("/auth2fa", middleware.UserIdentityWithUnauthorizedToken(), s.handler2Factor())
+		api.GET("/profile", middleware.UserIdentityWithAuthorizedToken(), s.handlerProfile())
+		api.GET("/get-money", middleware.UserIdentityWithAuthorizedToken(), s.handlerGetMoney())
 
 		apiOrdinaryUser := api.Group("/client").
 			Use(middleware.UserIdentityWithAuthorizedToken(), middleware.OrdinaryUserIdentity())
 		{
 			apiOrdinaryUser.POST("/create-order", s.handlerCreateOrder())
-			apiOrdinaryUser.GET("/photographers", s.handlerGetAgreedPhotographer())
-			apiOrdinaryUser.PATCH("/accept", s.handlerAccept())
+			apiOrdinaryUser.POST("/finish-order", s.checkOrderForClient(), s.handlerFinishOrder())
+			apiOrdinaryUser.POST("/review", s.checkOrderForClient(), s.handlerClientReview())
+			apiOrdinaryUser.POST("/cancel", s.checkOrderForClient(), s.handlerCancel())
+			apiOrdinaryUser.GET("/offer", s.checkOrderForClient(), s.handlerGetAgreedPhotographer())
+			apiOrdinaryUser.GET("/photographers", s.handlerGetAllPhotographer())
+			apiOrdinaryUser.GET("/get-preview", s.checkOrderForClient(), s.handlerGetPreview())
+			apiOrdinaryUser.GET("/qrcode", s.checkOrderForClient(), s.handlerCreateQRCode())
+			apiOrdinaryUser.PATCH("/accept", s.checkOrderForClient(), s.handlerAccept())
 		}
 
 		apiPhotographer := api.Group("/ph").
 			Use(middleware.UserIdentityWithAuthorizedToken(), middleware.PhotographerIdentity())
 		{
+			apiPhotographer.POST("/upload", s.checkOrderForPhotographer(), s.handlerUpload())
+			apiPhotographer.POST("/review", s.checkOrderForPhotographer(), s.handlerPhotographerReview())
 			apiPhotographer.GET("/orders", s.handlerGetOrder())
 			apiPhotographer.PATCH("/select", s.handlerSelect())
+			apiPhotographer.PATCH("/confirm-qrcode", s.handlerConfirmQRCode())
 		}
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -133,9 +156,16 @@ func (s *Server) GetStore() (*store.Store, error) {
 	return s.store, nil
 }
 
-func (s *Server) GetCache() (*cache.Cache, error) {
-	if s.cache == nil {
-		return nil, errors.New("empty cache")
+func (s *Server) GetPassCache() (*onetimepasscache.Cache, error) {
+	if s.passCache == nil {
+		return nil, errors.New("empty pass cache")
 	}
-	return s.cache, nil
+	return s.passCache, nil
+}
+
+func (s *Server) GetKeyCache() (*keycache.Cache, error) {
+	if s.keyCache == nil {
+		return nil, errors.New("empty key cache")
+	}
+	return s.keyCache, nil
 }

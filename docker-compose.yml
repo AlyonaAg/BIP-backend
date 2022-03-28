@@ -19,6 +19,7 @@ services:
       - db
       - pgadmin
       - redis
+      - rediskey
 
   db:
     restart: always
@@ -54,3 +55,13 @@ services:
     command: redis-server --requirepass admin
     ports:
       - "6379:6379"
+
+  rediskey:
+    restart: always
+    container_name: container-redis2
+    image: redis
+    volumes:
+      - ./.storage/redis2/data:/data
+    command: redis-server --requirepass admin
+    ports:
+      - "6381:6379"

@@ -19,11 +19,11 @@ type UserData struct {
 
 type User struct {
 	UserData
-	ID               int      `json:"id"`
-	Money            int      `json:"money"`
-	Rating           float64  `json:"rating"`
-	Comment          []string `json:"comment"`
-	ListPhotoProfile []string `json:"list_photo_profile"`
+	ID               int        `json:"id"`
+	Money            int        `json:"money"`
+	Rating           float64    `json:"rating"`
+	Comment          []*Comment `json:"comment"`
+	ListPhotoProfile []string   `json:"list_photo_profile"`
 }
 
 func (u *User) Validate() error {

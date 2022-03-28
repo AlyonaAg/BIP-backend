@@ -12,7 +12,8 @@ CREATE TABLE "user"
     "avatar_url" text,
     "phone_number" varchar(15),
     "mail" text,
-    "rating" real CHECK ("rating" >= 0 AND "rating" <= 5)
+    "rating" real CHECK ("rating" >= 0 AND "rating" <= 5),
+    "secret_key" text NOT NULL
 );
 
 CREATE TABLE "photo_url"
@@ -41,7 +42,9 @@ CREATE TABLE "order"
     "location" point NOT NULL,
     "client_current_location" point,
     "order_state" states NOT NULL,
-    "comment" text
+    "comment" text,
+    "url_original" text,
+    "url_watermark" text
 );
 
 CREATE TABLE "agreed_photographers"

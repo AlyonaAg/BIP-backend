@@ -17,15 +17,16 @@ type successResponse struct {
 }
 
 type structBaseUserInfo struct {
-	ID               int      `json:"id"`
-	Rating           float64  `json:"rating"`
-	Comment          []string `json:"comment"`
-	ListPhotoProfile []string `json:"list_photo_profile"`
-	Username         string   `json:"username"`
-	FirstName        string   `json:"first_name"`
-	SecondName       string   `json:"second_name"`
-	AvatarURL        string   `json:"avatar_url"`
-	PhoneNumber      string   `json:"phone_number"`
+	ID               int              `json:"id"`
+	Rating           float64          `json:"rating"`
+	Comment          []*model.Comment `json:"comment"`
+	ListPhotoProfile []string         `json:"list_photo_profile"`
+	Username         string           `json:"username"`
+	FirstName        string           `json:"first_name"`
+	SecondName       string           `json:"second_name"`
+	AvatarURL        string           `json:"avatar_url"`
+	PhoneNumber      string           `json:"phone_number"`
+	IsPhotographer   bool             `json:"is_photographer"`
 }
 
 type structResponseSessionsCreate struct {
@@ -52,6 +53,30 @@ type structResponseAgreedPhotographers struct {
 	Photographers []*structBaseUserInfo `json:"photographers"`
 }
 
+type structResponseAllPhotographers struct {
+	Photographers []*structBaseUserInfo `json:"photographers"`
+}
+
+type structResponseFinishOrder struct {
+	URLOriginal string `json:"url_original"`
+}
+
+type structResponseGetPreview struct {
+	URLWatermark string `json:"url_watermark"`
+}
+
+type structResponseCreateQRCode struct {
+	Code []byte `json:"code"`
+}
+
+type structResponseConfirmQRCode struct {
+	Money int `json:"money"`
+}
+
+type structResponseGetMoney struct {
+	Money int `json:"money"`
+}
+
 func newSuccessResponse(success bool, err error) *successResponse {
 	if err != nil {
 		logrus.Error(err.Error())
@@ -76,6 +101,27 @@ func response2Factor(jwt string, user *model.User) *structResponse2Factor {
 	return &structResponse2Factor{
 		JWT:  jwt,
 		User: getBaseUserInfo(user),
+	}
+}
+
+func responseGetAllPhotographer(photographers []model.User) *structResponseAllPhotographers {
+	var photographersData = &structResponseAllPhotographers{}
+	for _, u := range photographers {
+		bu := getBaseUserInfo(&u)
+		photographersData.Photographers = append(photographersData.Photographers, bu)
+	}
+	return photographersData
+}
+
+func responseFinishOrder(URLOrdinary string) *structResponseFinishOrder {
+	return &structResponseFinishOrder{
+		URLOriginal: URLOrdinary,
+	}
+}
+
+func responseGetPreview(URLWatermark string) *structResponseGetPreview {
+	return &structResponseGetPreview{
+		URLWatermark: URLWatermark,
 	}
 }
 
@@ -116,6 +162,24 @@ func responseGetAgreedPhotographer(photographerID []int, ur *store.UserRepositor
 	return photographersData, nil
 }
 
+func responseCreateQRCode(code []byte) *structResponseCreateQRCode {
+	return &structResponseCreateQRCode{
+		Code: code,
+	}
+}
+
+func responseConfirmQRCode(money int) *structResponseConfirmQRCode {
+	return &structResponseConfirmQRCode{
+		Money: money,
+	}
+}
+
+func responseGetMoney(money int) *structResponseGetMoney {
+	return &structResponseGetMoney{
+		Money: money,
+	}
+}
+
 func getBaseUserInfo(user *model.User) *structBaseUserInfo {
 	return &structBaseUserInfo{
 		ID:               user.ID,
@@ -127,5 +191,6 @@ func getBaseUserInfo(user *model.User) *structBaseUserInfo {
 		Rating:           user.Rating,
 		Comment:          user.Comment,
 		ListPhotoProfile: user.ListPhotoProfile,
+		IsPhotographer:   user.IsPhotographer,
 	}
 }

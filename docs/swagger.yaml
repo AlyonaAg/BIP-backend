@@ -11,12 +11,14 @@ definitions:
         type: string
       comment:
         items:
-          type: string
+          $ref: '#/definitions/model.Comment'
         type: array
       first_name:
         type: string
       id:
         type: integer
+      is_photographer:
+        type: boolean
       list_photo_profile:
         items:
           type: string
@@ -46,11 +48,25 @@ definitions:
       code:
         type: string
     type: object
+  apiserver.structRequestReview:
+    properties:
+      comment:
+        type: string
+      rating:
+        type: integer
+    type: object
   apiserver.structRequestSessionsCreate:
     properties:
       password:
         type: string
       username:
+        type: string
+    type: object
+  apiserver.structRequestUpload:
+    properties:
+      url_origin:
+        type: string
+      url_watermark:
         type: string
     type: object
   apiserver.structResponse2Factor:
@@ -67,12 +83,41 @@ definitions:
           $ref: '#/definitions/apiserver.structBaseUserInfo'
         type: array
     type: object
+  apiserver.structResponseAllPhotographers:
+    properties:
+      photographers:
+        items:
+          $ref: '#/definitions/apiserver.structBaseUserInfo'
+        type: array
+    type: object
+  apiserver.structResponseCreateQRCode:
+    properties:
+      code:
+        items:
+          type: integer
+        type: array
+    type: object
+  apiserver.structResponseFinishOrder:
+    properties:
+      url_original:
+        type: string
+    type: object
+  apiserver.structResponseGetMoney:
+    properties:
+      money:
+        type: integer
+    type: object
   apiserver.structResponseGetOrder:
     properties:
       order_data:
         items:
           $ref: '#/definitions/apiserver.structOrder'
         type: array
+    type: object
+  apiserver.structResponseGetPreview:
+    properties:
+      url_watermark:
+        type: string
     type: object
   apiserver.structResponseSessionsCreate:
     properties:
@@ -83,6 +128,19 @@ definitions:
     properties:
       success:
         type: boolean
+    type: object
+  model.Comment:
+    properties:
+      avatar_url:
+        type: string
+      client_id:
+        type: integer
+      content:
+        type: string
+      rating:
+        type: number
+      username:
+        type: string
     type: object
   model.Location:
     properties:
@@ -249,6 +307,47 @@ paths:
       summary: Accept photographer
       tags:
       - client api
+  /client/cancel:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id order
+        in: query
+        name: id_order
+        required: true
+        type: string
+      - description: id user
+        in: query
+        name: id_user
+        required: true
+        type: string
+      - description: review
+        in: body
+        name: review
+        required: true
+        schema:
+          $ref: '#/definitions/apiserver.structRequestReview'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.successResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Order cancellation
+      tags:
+      - client api
   /client/create-order:
     post:
       consumes:
@@ -280,7 +379,59 @@ paths:
       summary: Create order
       tags:
       - client api
-  /client/photographers:
+  /client/finish-order:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id order
+        in: query
+        name: id_order
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structResponseFinishOrder'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Finish order
+      tags:
+      - client api
+  /client/get-preview:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id order
+        in: query
+        name: id_order
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structResponseGetPreview'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get preview
+      tags:
+      - client api
+  /client/offer:
     get:
       consumes:
       - application/json
@@ -310,6 +461,172 @@ paths:
       summary: Get list agreed photographers
       tags:
       - client api
+  /client/photographers:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structResponseAllPhotographers'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get list all photographers
+      tags:
+      - client api
+  /client/qrcode:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id order
+        in: query
+        name: id_order
+        required: true
+        type: integer
+      - description: id user
+        in: query
+        name: id_user
+        required: true
+        type: integer
+      - description: latitude
+        in: query
+        name: latitude
+        required: true
+        type: number
+      - description: longitude
+        in: query
+        name: longitude
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structResponseCreateQRCode'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get QR-code
+      tags:
+      - client api
+  /client/review:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id order
+        in: query
+        name: id_order
+        required: true
+        type: string
+      - description: id client
+        in: query
+        name: id_client
+        required: true
+        type: string
+      - description: review
+        in: body
+        name: review
+        required: true
+        schema:
+          $ref: '#/definitions/apiserver.structRequestReview'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.successResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Client feedback
+      tags:
+      - client api
+  /get-money:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id user
+        in: query
+        name: id_user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structResponseGetMoney'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: User money data
+      tags:
+      - api
+  /ph/confirm-qrcode:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: qr-code
+        in: query
+        name: qrcode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structResponseCreateQRCode'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Confirm QR-code
+      tags:
+      - photographer api
   /ph/orders:
     get:
       consumes:
@@ -328,6 +645,47 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get order list
+      tags:
+      - photographer api
+  /ph/review:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id order
+        in: query
+        name: id_order
+        required: true
+        type: string
+      - description: id photographer
+        in: query
+        name: id_user
+        required: true
+        type: string
+      - description: review
+        in: body
+        name: review
+        required: true
+        schema:
+          $ref: '#/definitions/apiserver.structRequestReview'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.successResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Photographer feedback
       tags:
       - photographer api
   /ph/select:
@@ -366,6 +724,72 @@ paths:
       summary: Select order
       tags:
       - photographer api
+  /ph/upload:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id order
+        in: query
+        name: id_order
+        required: true
+        type: integer
+      - description: link
+        in: body
+        name: link
+        required: true
+        schema:
+          $ref: '#/definitions/apiserver.structRequestUpload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.successResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.successResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Upload link
+      tags:
+      - photographer api
+  /profile:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id user
+        in: query
+        name: id_user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structBaseUserInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Info about user
+      tags:
+      - api
   /registration:
     post:
       consumes:
