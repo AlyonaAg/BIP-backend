@@ -23,13 +23,16 @@ var (
 	incorrectClientID           = errors.New("incorrect user id")
 	internalServerError         = errors.New("internal server error")
 	insufficientFunds           = errors.New("insufficient funds")
-	tokenIsDeprecated           = errors.New("token is deprecated")
 	incorrectOrderID            = errors.New("incorrect order id")
 	incorrectPhotographerID     = errors.New("incorrect photographer id")
 	incorrectAccept             = errors.New("incorrect accept")
 	incorrectLocation           = errors.New("incorrect location")
 	incorrectQRCode             = errors.New("incorrect QR-code")
+	incorrectPage               = errors.New("incorrect page")
 	orderCompleted              = errors.New("order completed")
+	incorrectAction             = errors.New("action is not possible, does not correspond to the order status")
+	tokenIsDeprecated           = errors.New("token is deprecated")
+	commentAlreadyExists        = errors.New("comment already exists")
 )
 
 // @Summary      Registration
@@ -222,7 +225,7 @@ func (s *Server) handler2Factor() gin.HandlerFunc {
 // @Router       /client/create-order [post]
 func (s *Server) handlerCreateOrder() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var o = &model.Order{}
+		var o = &model.OrderData{}
 		if err := c.ShouldBindJSON(o); err != nil {
 			newErrorResponse(c, http.StatusBadRequest, incorrectRequestData, err)
 			return
@@ -240,12 +243,7 @@ func (s *Server) handlerCreateOrder() gin.HandlerFunc {
 			return
 		}
 
-		if userID.(int) != o.ClientID {
-			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, incorrectClientID)
-			return
-		}
-
-		u, err := store.User().FindByID(o.ClientID)
+		u, err := store.User().FindByID(userID.(int))
 		if err != nil {
 			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
 			return
@@ -255,19 +253,24 @@ func (s *Server) handlerCreateOrder() gin.HandlerFunc {
 			return
 		}
 
-		o.OrderState = model.Created
 		if err := store.User().WithdrawMoney(u.Username, o.OrderCost); err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
 			return
 		}
 
-		if err := store.Order().Create(o); err != nil {
+		var order = &model.Order{}
+		order.OrderCost = o.OrderCost
+		order.Comment = o.Comment
+		order.Location = o.Location
+		order.ClientID = userID.(int)
+
+		if err := store.Order().Create(order); err != nil {
 			store.User().PutMoney(u.Username, o.OrderCost)
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
 			return
 		}
 
-		c.JSON(http.StatusOK, o)
+		c.JSON(http.StatusOK, order)
 	}
 }
 
@@ -276,7 +279,7 @@ func (s *Server) handlerCreateOrder() gin.HandlerFunc {
 // @Tags         photographer api
 // @Accept       json
 // @Produce      json
-// @Success      200 {object}  structResponseGetOrder
+// @Success      200 {object}  structBaseOrderInfoForPhotographer
 // @Failure      500  {object}  errorResponse
 // @Router       /ph/orders [get]
 func (s *Server) handlerGetOrder() gin.HandlerFunc {
@@ -309,20 +312,19 @@ func (s *Server) handlerGetOrder() gin.HandlerFunc {
 // @Accept       json
 // @Produce      json
 // @Param        id_order  query  int  true  "id order"
-// @Param        id_photographer query  int  true  "id photographer"
 // @Success      200,400 {object}  successResponse
 // @Failure      500  {object}  errorResponse
 // @Router       /ph/select [patch]
 func (s *Server) handlerSelect() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idOrder, err := strconv.Atoi(c.Query("id_order"))
+		orderID, err := strconv.Atoi(c.Query("id_order"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, newSuccessResponse(false, incorrectOrderID))
 			return
 		}
-		idPhotographer, err := strconv.Atoi(c.Query("id_photographer"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, newSuccessResponse(false, incorrectPhotographerID))
+		photographerID, ok := c.Get("user_id")
+		if !ok {
+			newErrorResponse(c, http.StatusBadRequest, incorrectToken, incorrectToken)
 			return
 		}
 
@@ -331,12 +333,23 @@ func (s *Server) handlerSelect() gin.HandlerFunc {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
 			return
 		}
-		if err := store.Photographer().Create(idOrder, idPhotographer); err != nil {
-			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+
+		o, err := store.Order().GetOrderByID(orderID)
+		if err != nil {
+			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
+			return
+		}
+		if o.OrderState != model.AgreedPhotographer && o.OrderState != model.Created {
+			newErrorResponse(c, http.StatusBadRequest, incorrectAction, incorrectAction)
 			return
 		}
 
-		if err := store.Order().UpdateOrderState(model.AgreedPhotographer, idOrder); err != nil {
+		if err := store.Photographer().Create(orderID, photographerID.(int)); err != nil {
+			newErrorResponse(c, http.StatusBadRequest, incorrectOrderID, err)
+			return
+		}
+
+		if err := store.Order().UpdateOrderState(model.AgreedPhotographer, orderID); err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
 			return
 		}
@@ -389,18 +402,25 @@ func (s *Server) handlerGetAgreedPhotographer() gin.HandlerFunc {
 // @Tags         client api
 // @Accept       json
 // @Produce      json
+// @Param        page  query  int  true  "page"
 // @Success      200  {object}  structResponseAllPhotographers
 // @Failure      500  {object}  errorResponse
 // @Router       /client/photographers [get]
 func (s *Server) handlerGetAllPhotographer() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		page, err := strconv.Atoi(c.Query("page"))
+		if err != nil {
+			newErrorResponse(c, http.StatusBadRequest, incorrectPage, err)
+			return
+		}
+
 		store, err := s.GetStore()
 		if err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
 			return
 		}
 
-		photographers, err := store.User().GetAllPhotographer()
+		photographers, err := store.User().GetAllPhotographer(page)
 		if err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
 			return
@@ -416,8 +436,8 @@ func (s *Server) handlerGetAllPhotographer() gin.HandlerFunc {
 // @Accept       json
 // @Produce      json
 // @Param        id_order  query  int  true  "id order"
-// @Param        id_photographer  query  int  true  "id order"
-// @Param        is_accept  query  bool  true  "id order"
+// @Param        id_photographer  query  int  true  "id photographer"
+// @Param        is_accept  query  bool  true  "accept"
 // @Success      200  {object}  successResponse
 // @Failure      400  {object}  successResponse
 // @Failure      500  {object}  errorResponse
@@ -446,11 +466,22 @@ func (s *Server) handlerAccept() gin.HandlerFunc {
 			return
 		}
 
+		o, err := store.Order().GetOrderByID(orderID)
+		if err != nil {
+			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
+			return
+		}
+		if o.OrderState != model.AgreedPhotographer {
+			newErrorResponse(c, http.StatusBadRequest, incorrectAction, incorrectAction)
+			return
+		}
+
 		if err := store.Photographer().CheckOrderAvailability(photographerID, orderID); err != nil {
 			c.JSON(http.StatusBadRequest, newSuccessResponse(false, err))
 			return
 		}
 		if isAccept {
+
 			if err := store.Order().UpdateOrderState(model.AgreedClient, orderID); err != nil {
 				c.JSON(http.StatusBadRequest, newSuccessResponse(false, err))
 				return
@@ -497,28 +528,27 @@ func (s *Server) handlerFinishOrder() gin.HandlerFunc {
 			return
 		}
 
-		if err := store.Order().UpdateOrderState(model.Finish, orderID); err != nil {
-			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+		o, err := store.Order().GetOrderByID(orderID)
+		if err != nil {
+			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
 			return
 		}
+		if o.OrderState != model.WatermarkSent {
+			newErrorResponse(c, http.StatusBadRequest, incorrectAction, incorrectAction)
+			return
+		}
+
 		URLOriginal, err := store.Order().GetURLOriginal(orderID)
 		if err != nil {
 			newErrorResponse(c, http.StatusBadRequest, err, err)
 			return
 		}
-
-		cost, err := store.Order().GetCost(orderID)
-		if err != nil {
+		if err := store.Order().UpdateOrderState(model.Finish, orderID); err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
 			return
 		}
 
-		photographerID, err := store.Order().GetPhotographerID(orderID)
-		if err != nil {
-			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
-			return
-		}
-		store.User().PutMoneyByID(photographerID, int(float64(cost)-float64(cost)*0.3))
+		store.User().PutMoneyByID(o.PhotographerID, int(float64(o.OrderCost)-float64(o.OrderCost)*0.3))
 
 		c.JSON(http.StatusOK, responseFinishOrder(URLOriginal))
 	}
@@ -555,6 +585,16 @@ func (s *Server) handlerUpload() gin.HandlerFunc {
 			return
 		}
 
+		o, err := store.Order().GetOrderByID(orderID)
+		if err != nil {
+			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
+			return
+		}
+		if o.OrderState != model.Meeting && o.OrderState != model.WatermarkSent {
+			newErrorResponse(c, http.StatusBadRequest, incorrectAction, incorrectAction)
+			return
+		}
+
 		if err := store.Order().UpdateURL(r.URLOriginal, r.URLWatermark, orderID); err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
 			return
@@ -564,7 +604,7 @@ func (s *Server) handlerUpload() gin.HandlerFunc {
 	}
 }
 
-// @Summary      Get preview
+// @Summary      Get preview photos
 // @Security 	 ApiKeyAuth
 // @Tags         client api
 // @Accept       json
@@ -587,17 +627,70 @@ func (s *Server) handlerGetPreview() gin.HandlerFunc {
 			return
 		}
 
-		if err := store.Order().UpdateOrderState(model.WatermarkSent, orderID); err != nil {
-			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+		o, err := store.Order().GetOrderByID(orderID)
+		if err != nil {
+			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
 			return
 		}
+		if o.OrderState != model.Meeting && o.OrderState != model.Finish && o.OrderState != model.WatermarkSent {
+			newErrorResponse(c, http.StatusBadRequest, incorrectAction, incorrectAction)
+			return
+		}
+
 		URLWatermark, err := store.Order().GetURLWatermark(orderID)
 		if err != nil {
 			newErrorResponse(c, http.StatusBadRequest, err, err)
 			return
 		}
+		if err := store.Order().UpdateOrderState(model.WatermarkSent, orderID); err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+			return
+		}
 
 		c.JSON(http.StatusOK, responseGetPreview(URLWatermark))
+	}
+}
+
+// @Summary      Get original photos
+// @Security 	 ApiKeyAuth
+// @Tags         client api
+// @Accept       json
+// @Produce      json
+// @Param        id_order  query  int  true  "id order"
+// @Success      200  {object}  structResponseFinishOrder
+// @Failure      500  {object}  errorResponse
+// @Router       /client/get-original [GET]
+func (s *Server) handlerGetOriginal() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		orderID, err := strconv.Atoi(c.Query("id_order"))
+		if err != nil {
+			newErrorResponse(c, http.StatusBadRequest, incorrectOrderID, err)
+			return
+		}
+
+		store, err := s.GetStore()
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+			return
+		}
+
+		o, err := store.Order().GetOrderByID(orderID)
+		if err != nil {
+			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
+			return
+		}
+		if o.OrderState != model.Finish {
+			newErrorResponse(c, http.StatusBadRequest, incorrectAction, incorrectAction)
+			return
+		}
+
+		URLOriginal, err := store.Order().GetURLWatermark(orderID)
+		if err != nil {
+			newErrorResponse(c, http.StatusBadRequest, err, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, responseFinishOrder(URLOriginal))
 	}
 }
 
@@ -607,7 +700,6 @@ func (s *Server) handlerGetPreview() gin.HandlerFunc {
 // @Accept       json
 // @Produce      json
 // @Param        id_order  query  int  true  "id order"
-// @Param        id_user   query  int  true  "id user"
 // @Param        latitude  query  float64  true  "latitude"
 // @Param        longitude  query  float64  true  "longitude"
 // @Success      200  {object}  structResponseCreateQRCode
@@ -620,11 +712,6 @@ func (s *Server) handlerCreateQRCode() gin.HandlerFunc {
 			newErrorResponse(c, http.StatusBadRequest, incorrectOrderID, err)
 			return
 		}
-		userID, err := strconv.Atoi(c.Query("id_user"))
-		if err != nil {
-			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
-			return
-		}
 		latitude, err := strconv.ParseFloat(c.Query("latitude"), 64)
 		if err != nil {
 			newErrorResponse(c, http.StatusBadRequest, incorrectLocation, err)
@@ -633,6 +720,11 @@ func (s *Server) handlerCreateQRCode() gin.HandlerFunc {
 		longitude, err := strconv.ParseFloat(c.Query("longitude"), 64)
 		if err != nil {
 			newErrorResponse(c, http.StatusBadRequest, incorrectLocation, err)
+			return
+		}
+		userID, ok := c.Get("user_id")
+		if !ok {
+			newErrorResponse(c, http.StatusBadRequest, incorrectToken, incorrectToken)
 			return
 		}
 
@@ -646,13 +738,22 @@ func (s *Server) handlerCreateQRCode() gin.HandlerFunc {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
 			return
 		}
+		o, err := store.Order().GetOrderByID(orderID)
+		if err != nil {
+			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
+			return
+		}
+		if o.OrderState != model.AgreedClient {
+			newErrorResponse(c, http.StatusBadRequest, incorrectAction, incorrectAction)
+			return
+		}
 
 		if err := store.Order().UpdateCurrentLocation(location, orderID); err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
 			return
 		}
 
-		secretKey, err := store.User().GetSecretKey(userID)
+		secretKey, err := store.User().GetSecretKey(userID.(int))
 		if err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
 			return
@@ -757,6 +858,7 @@ func (s *Server) handlerConfirmQRCode() gin.HandlerFunc {
 			newErrorResponse(c, http.StatusBadRequest, incorrectQRCode, err)
 			return
 		}
+
 		if err := store.User().CheckSecretKey(clientID, secretKey); err != nil {
 			newErrorResponse(c, http.StatusBadRequest, incorrectQRCode, err)
 			return
@@ -767,6 +869,7 @@ func (s *Server) handlerConfirmQRCode() gin.HandlerFunc {
 		}
 
 		store.User().PutMoneyByID(photographerID.(int), int(float64(orderCost)*0.3))
+		cache.Del(strconv.Itoa(QROrderID))
 
 		c.JSON(http.StatusOK, responseConfirmQRCode(int(float64(orderCost)*0.3)))
 	}
@@ -778,7 +881,6 @@ func (s *Server) handlerConfirmQRCode() gin.HandlerFunc {
 // @Accept       json
 // @Produce      json
 // @Param        id_order  query  string  true  "id order"
-// @Param        id_client  query  string  true  "id client"
 // @Param        review  body  structRequestReview  true  "review"
 // @Success      200  {object}  successResponse
 // @Failure      400,500  {object}  errorResponse
@@ -790,9 +892,9 @@ func (s *Server) handlerClientReview() gin.HandlerFunc {
 			newErrorResponse(c, http.StatusBadRequest, incorrectOrderID, err)
 			return
 		}
-		clientID, err := strconv.Atoi(c.Query("id_client"))
-		if err != nil {
-			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
+		clientID, ok := c.Get("user_id")
+		if !ok {
+			newErrorResponse(c, http.StatusBadRequest, incorrectToken, incorrectToken)
 			return
 		}
 
@@ -807,6 +909,15 @@ func (s *Server) handlerClientReview() gin.HandlerFunc {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
 			return
 		}
+		o, err := store.Order().GetOrderByID(orderID)
+		if err != nil {
+			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
+			return
+		}
+		if o.OrderState != model.Finish {
+			newErrorResponse(c, http.StatusBadRequest, incorrectAction, incorrectAction)
+			return
+		}
 
 		order, err := store.Order().GetOrderByID(orderID)
 		if err != nil {
@@ -814,8 +925,9 @@ func (s *Server) handlerClientReview() gin.HandlerFunc {
 			return
 		}
 
-		if err := store.Comment().Create(order.PhotographerID, clientID, r.Rating, model.Finish, r.Comment); err != nil {
-			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+		if err := store.Comment().Create(orderID, order.PhotographerID, clientID.(int), r.Rating, model.Finish,
+			r.Comment); err != nil {
+			newErrorResponse(c, http.StatusBadRequest, commentAlreadyExists, err)
 			return
 		}
 
@@ -839,7 +951,6 @@ func (s *Server) handlerClientReview() gin.HandlerFunc {
 // @Accept       json
 // @Produce      json
 // @Param        id_order  query  string  true  "id order"
-// @Param        id_user  query  string  true  "id photographer"
 // @Param        review  body  structRequestReview  true  "review"
 // @Success      200  {object}  successResponse
 // @Failure      400,500  {object}  errorResponse
@@ -851,9 +962,9 @@ func (s *Server) handlerPhotographerReview() gin.HandlerFunc {
 			newErrorResponse(c, http.StatusBadRequest, incorrectOrderID, err)
 			return
 		}
-		photographID, err := strconv.Atoi(c.Query("id_user"))
-		if err != nil {
-			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
+		photographID, ok := c.Get("user_id")
+		if !ok {
+			newErrorResponse(c, http.StatusBadRequest, incorrectToken, incorrectToken)
 			return
 		}
 
@@ -868,6 +979,15 @@ func (s *Server) handlerPhotographerReview() gin.HandlerFunc {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
 			return
 		}
+		o, err := store.Order().GetOrderByID(orderID)
+		if err != nil {
+			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
+			return
+		}
+		if o.OrderState != model.Finish {
+			newErrorResponse(c, http.StatusBadRequest, incorrectAction, incorrectAction)
+			return
+		}
 
 		order, err := store.Order().GetOrderByID(orderID)
 		if err != nil {
@@ -875,8 +995,9 @@ func (s *Server) handlerPhotographerReview() gin.HandlerFunc {
 			return
 		}
 
-		if err := store.Comment().Create(order.ClientID, photographID, r.Rating, model.Finish, r.Comment); err != nil {
-			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+		if err := store.Comment().Create(orderID, order.ClientID, photographID.(int), r.Rating,
+			model.Finish, r.Comment); err != nil {
+			newErrorResponse(c, http.StatusBadRequest, commentAlreadyExists, err)
 			return
 		}
 
@@ -900,7 +1021,6 @@ func (s *Server) handlerPhotographerReview() gin.HandlerFunc {
 // @Accept       json
 // @Produce      json
 // @Param        id_order  query  string  true  "id order"
-// @Param        id_user  query  string  true  "id user"
 // @Param        review  body  structRequestReview  true  "review"
 // @Success      200  {object}  successResponse
 // @Failure      400,500  {object}  errorResponse
@@ -912,9 +1032,9 @@ func (s *Server) handlerCancel() gin.HandlerFunc {
 			newErrorResponse(c, http.StatusBadRequest, incorrectOrderID, err)
 			return
 		}
-		clientID, err := strconv.Atoi(c.Query("id_user"))
-		if err != nil {
-			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
+		clientID, ok := c.Get("user_id")
+		if !ok {
+			newErrorResponse(c, http.StatusBadRequest, incorrectToken, incorrectToken)
 			return
 		}
 
@@ -941,7 +1061,8 @@ func (s *Server) handlerCancel() gin.HandlerFunc {
 		}
 
 		if order.PhotographerID != 0 {
-			if err := store.Comment().Create(order.PhotographerID, clientID, r.Rating, order.OrderState, r.Comment); err != nil {
+			if err := store.Comment().Create(orderID, order.PhotographerID, clientID.(int), r.Rating,
+				order.OrderState, r.Comment); err != nil {
 				newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
 				return
 			}
@@ -963,7 +1084,7 @@ func (s *Server) handlerCancel() gin.HandlerFunc {
 		} else {
 			refundAmount = int(float64(order.OrderCost) - float64(order.OrderCost)*0.3)
 		}
-		store.User().PutMoneyByID(clientID, refundAmount)
+		store.User().PutMoneyByID(clientID.(int), refundAmount)
 
 		if err := store.Order().UpdateOrderState(model.Finish, orderID); err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
@@ -1010,26 +1131,14 @@ func (s *Server) handlerProfile() gin.HandlerFunc {
 // @Tags         api
 // @Accept       json
 // @Produce      json
-// @Param        id_user  query  string  true  "id user"
 // @Success      200  {object}  structResponseGetMoney
 // @Failure      400,500  {object}  errorResponse
 // @Router       /get-money [GET]
 func (s *Server) handlerGetMoney() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, err := strconv.Atoi(c.Query("id_user"))
-		if err != nil {
-			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
-			return
-		}
-
-		tokenUserID, ok := c.Get("user_id")
+		userID, ok := c.Get("user_id")
 		if !ok {
 			newErrorResponse(c, http.StatusUnauthorized, incorrectToken, incorrectToken)
-			return
-		}
-
-		if tokenUserID != userID {
-			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, incorrectClientID)
 			return
 		}
 
@@ -1038,13 +1147,83 @@ func (s *Server) handlerGetMoney() gin.HandlerFunc {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
 			return
 		}
-		money, err := store.User().GetMoney(userID)
+		money, err := store.User().GetMoney(userID.(int))
 		if err != nil {
 			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
 			return
 		}
 
 		c.JSON(http.StatusOK, responseGetMoney(money))
+	}
+}
+
+// @Summary      User orders
+// @Security 	 ApiKeyAuth
+// @Tags         client api
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  structResponseGetOrdersForPhotographer
+// @Failure      400,500  {object}  errorResponse
+// @Router       /client/all-orders [GET]
+func (s *Server) handlerGetClientOrders() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		clientID, ok := c.Get("user_id")
+		if !ok {
+			newErrorResponse(c, http.StatusUnauthorized, incorrectToken, incorrectToken)
+			return
+		}
+
+		store, err := s.GetStore()
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+			return
+		}
+
+		backlog, active, finished, err := store.Order().GetClientOrders(clientID.(int))
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+			return
+		}
+		response, err := responseGetOrdersForClient(backlog, active, finished, store.User())
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, response)
+	}
+}
+
+// @Summary      Photographer orders
+// @Security 	 ApiKeyAuth
+// @Tags         photographer api
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  structResponseGetOrdersForPhotographer
+// @Failure      400,500  {object}  errorResponse
+// @Router       /ph/all-orders [GET]
+func (s *Server) handlerGetPhotographerOrders() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		clientID, ok := c.Get("user_id")
+		if !ok {
+			newErrorResponse(c, http.StatusUnauthorized, incorrectToken, incorrectToken)
+			return
+		}
+
+		store, err := s.GetStore()
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+			return
+		}
+
+		backlog, active, finished, err := store.Order().GetPhotographerOrders(clientID.(int))
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+			return
+		}
+		response, err := responseGetOrdersForPhotographer(backlog, active, finished, store.User())
+
+		c.JSON(http.StatusOK, response)
 	}
 }
 

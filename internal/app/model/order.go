@@ -20,7 +20,6 @@ type Location struct {
 
 type OrderData struct {
 	Location  Location `json:"coordinates"`
-	ClientID  int      `json:"client_id"`
 	OrderCost int      `json:"order_cost"`
 	Comment   string   `json:"comment"`
 }
@@ -28,16 +27,16 @@ type OrderData struct {
 type Order struct {
 	OrderData
 	ID                int      `json:"id"`
+	ClientID          int      `json:"client_id"`
 	PhotographerID    int      `json:"photographer_id"`
 	ClientCurLocation Location `json:"client_current_location"`
 	OrderState        string   `json:"order_state"`
 }
 
-func (o *Order) Validate() error {
+func (o *OrderData) Validate() error {
 	return validation.ValidateStruct(
 		o,
 		validation.Field(&o.OrderCost, validation.Required, validation.Min(100)),
-		validation.Field(&o.ClientID, validation.Required),
 		validation.Field(&o.Location, validation.Required),
 	)
 }

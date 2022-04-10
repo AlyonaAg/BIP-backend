@@ -5,6 +5,13 @@ definitions:
       error:
         type: string
     type: object
+  apiserver.structBaseOrderInfoForPhotographer:
+    properties:
+      order_data:
+        items:
+          $ref: '#/definitions/apiserver.structOrderForPhotographer'
+        type: array
+    type: object
   apiserver.structBaseUserInfo:
     properties:
       avatar_url:
@@ -32,7 +39,7 @@ definitions:
       username:
         type: string
     type: object
-  apiserver.structOrder:
+  apiserver.structOrderForPhotographer:
     properties:
       client:
         $ref: '#/definitions/apiserver.structBaseUserInfo'
@@ -107,11 +114,19 @@ definitions:
       money:
         type: integer
     type: object
-  apiserver.structResponseGetOrder:
+  apiserver.structResponseGetOrdersForPhotographer:
     properties:
-      order_data:
+      active:
         items:
-          $ref: '#/definitions/apiserver.structOrder'
+          $ref: '#/definitions/apiserver.structOrderForPhotographer'
+        type: array
+      backlog:
+        items:
+          $ref: '#/definitions/apiserver.structOrderForPhotographer'
+        type: array
+      finished:
+        items:
+          $ref: '#/definitions/apiserver.structOrderForPhotographer'
         type: array
     type: object
   apiserver.structResponseGetPreview:
@@ -170,8 +185,6 @@ definitions:
     type: object
   model.OrderData:
     properties:
-      client_id:
-        type: integer
       comment:
         type: string
       coordinates:
@@ -198,7 +211,7 @@ definitions:
       username:
         type: string
     type: object
-host: 51.250.22.74:8080
+host: 51.250.18.28:8080
 info:
   contact: {}
   description: API for photographer search app
@@ -277,12 +290,12 @@ paths:
         name: id_order
         required: true
         type: integer
-      - description: id order
+      - description: id photographer
         in: query
         name: id_photographer
         required: true
         type: integer
-      - description: id order
+      - description: accept
         in: query
         name: is_accept
         required: true
@@ -307,6 +320,30 @@ paths:
       summary: Accept photographer
       tags:
       - client api
+  /client/all-orders:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structResponseGetOrdersForPhotographer'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: User orders
+      tags:
+      - client api
   /client/cancel:
     post:
       consumes:
@@ -315,11 +352,6 @@ paths:
       - description: id order
         in: query
         name: id_order
-        required: true
-        type: string
-      - description: id user
-        in: query
-        name: id_user
         required: true
         type: string
       - description: review
@@ -405,6 +437,32 @@ paths:
       summary: Finish order
       tags:
       - client api
+  /client/get-original:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id order
+        in: query
+        name: id_order
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structResponseFinishOrder'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get original photos
+      tags:
+      - client api
   /client/get-preview:
     get:
       consumes:
@@ -428,7 +486,7 @@ paths:
             $ref: '#/definitions/apiserver.errorResponse'
       security:
       - ApiKeyAuth: []
-      summary: Get preview
+      summary: Get preview photos
       tags:
       - client api
   /client/offer:
@@ -465,6 +523,12 @@ paths:
     get:
       consumes:
       - application/json
+      parameters:
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -489,11 +553,6 @@ paths:
       - description: id order
         in: query
         name: id_order
-        required: true
-        type: integer
-      - description: id user
-        in: query
-        name: id_user
         required: true
         type: integer
       - description: latitude
@@ -536,11 +595,6 @@ paths:
         name: id_order
         required: true
         type: string
-      - description: id client
-        in: query
-        name: id_client
-        required: true
-        type: string
       - description: review
         in: body
         name: review
@@ -571,12 +625,6 @@ paths:
     get:
       consumes:
       - application/json
-      parameters:
-      - description: id user
-        in: query
-        name: id_user
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -597,6 +645,30 @@ paths:
       summary: User money data
       tags:
       - api
+  /ph/all-orders:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structResponseGetOrdersForPhotographer'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Photographer orders
+      tags:
+      - photographer api
   /ph/confirm-qrcode:
     patch:
       consumes:
@@ -637,7 +709,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/apiserver.structResponseGetOrder'
+            $ref: '#/definitions/apiserver.structBaseOrderInfoForPhotographer'
         "500":
           description: Internal Server Error
           schema:
@@ -655,11 +727,6 @@ paths:
       - description: id order
         in: query
         name: id_order
-        required: true
-        type: string
-      - description: id photographer
-        in: query
-        name: id_user
         required: true
         type: string
       - description: review
@@ -697,11 +764,6 @@ paths:
       - description: id order
         in: query
         name: id_order
-        required: true
-        type: integer
-      - description: id photographer
-        in: query
-        name: id_photographer
         required: true
         type: integer
       produces:

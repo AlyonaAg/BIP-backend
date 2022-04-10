@@ -23,15 +23,6 @@ CREATE TABLE "photo_url"
     "url" text NOT NULL
 );
 
-CREATE TABLE "comments"
-(
-    "id" serial NOT NULL PRIMARY KEY,
-    "user_id" int NOT NULL REFERENCES "user"("id"),
-    "user_com_id" int NOT NULL REFERENCES "user"("id"),
-    "content" text NOT NULL,
-    "rating" int NOT NULL CHECK ("rating" >= 0 AND "rating" <= 5),
-    "state" states NOT NULL
-);
 
 CREATE TABLE "order"
 (
@@ -45,6 +36,18 @@ CREATE TABLE "order"
     "comment" text,
     "url_original" text,
     "url_watermark" text
+);
+
+CREATE TABLE "comments"
+(
+    "id" serial NOT NULL PRIMARY KEY,
+    "order_id" int NOT NULL REFERENCES "order"("id"),
+    "user_id" int NOT NULL REFERENCES "user"("id"),
+    "user_com_id" int NOT NULL REFERENCES "user"("id"),
+    "content" text NOT NULL,
+    "rating" int NOT NULL CHECK ("rating" >= 0 AND "rating" <= 5),
+    "state" states NOT NULL,
+    UNIQUE ("order_id", "user_id", "user_com_id")
 );
 
 CREATE TABLE "agreed_photographers"

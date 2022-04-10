@@ -1,6 +1,8 @@
 package qrcode
 
 import (
+	"encoding/base64"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -27,7 +29,7 @@ func NewQRCoder() (*QRCoder, error) {
 func (qc *QRCoder) CreateQRCode(location *model.Location, orderID int, secret string) ([]byte, error) {
 	var png []byte
 
-	info := qc.convertingInformationToString(location, orderID, secret)
+	info := base64.StdEncoding.EncodeToString([]byte(qc.convertingInformationToString(location, orderID, secret)))
 	png, err := qrcode.Encode(info, qrcode.Medium, 256)
 	if err != nil {
 		return nil, err
@@ -37,7 +39,12 @@ func (qc *QRCoder) CreateQRCode(location *model.Location, orderID int, secret st
 }
 
 func (qc *QRCoder) DecodeQRCode(qrCode string) (*model.Location, int /*orderID*/, string /*secret*/, error) {
-	qrCodeSplit := strings.Split(qrCode, "_")
+	byteQRCode, err := base64.StdEncoding.DecodeString(qrCode)
+	if err != nil {
+		return nil, 0, "", err
+	}
+	qrCodeSplit := strings.Split(string(byteQRCode), "_")
+	fmt.Println(qrCodeSplit)
 
 	longitude, err := strconv.ParseFloat(qrCodeSplit[0], 64)
 	if err != nil {

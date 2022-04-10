@@ -30,6 +30,7 @@ func (or *OrderRepository) Create(o *model.Order) error {
 		return err
 	}
 
+	o.OrderState = model.Created
 	if err := store.db.QueryRow(
 		`INSERT INTO "order" (client_id, order_cost, order_state, location, comment) `+
 			`VALUES ($1, $2, $3, $4, $5) RETURNING id`,
@@ -48,7 +49,7 @@ func (or *OrderRepository) GetListCreatedOrder() ([]model.Order, error) {
 		return nil, err
 	}
 
-	rows, err := store.db.Query(`SELECT id, client_id, order_cost, location, comment ` +
+	rows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment ` +
 		`FROM "order" WHERE order_state = 'created' OR order_state = 'agreed_photographer'`)
 
 	if err != nil {
@@ -56,31 +57,111 @@ func (or *OrderRepository) GetListCreatedOrder() ([]model.Order, error) {
 	}
 	defer rows.Close()
 
-	var orders []model.Order
-	var locationString string
-
-	for rows.Next() {
-		var order = model.Order{}
-		if err := rows.Scan(
-			&order.ID,
-			&order.ClientID,
-			&order.OrderCost,
-			&locationString,
-			&order.Comment,
-		); err != nil {
-			return nil, err
-		}
-
-		location, err := stringToLocation(locationString)
-		if err != nil {
-			continue
-		}
-		order.Location.Latitude = location.Latitude
-		order.Location.Longitude = location.Longitude
-
-		orders = append(orders, order)
+	orders, err := getOrders(rows)
+	if err != nil {
+		return nil, err
 	}
+
 	return orders, nil
+}
+
+func (or *OrderRepository) GetClientOrders(clientID int) ([]model.Order, /*backlog*/
+	[]model.Order, /*active*/
+	[]model.Order, /*finished*/
+	error) {
+	store, err := or.GetStore()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	backlogRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment `+
+		`FROM "order" WHERE (order_state = 'created' OR order_state = 'agreed_photographer') AND client_id = $1`,
+		clientID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	defer backlogRows.Close()
+	backlog, err := getOrders(backlogRows)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	activeRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment `+
+		`FROM "order" WHERE (order_state = 'meeting' OR order_state = 'watermarks_sent' OR `+
+		`order_state = 'agreed_client') AND client_id = $1`,
+		clientID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	defer activeRows.Close()
+	active, err := getOrders(activeRows)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	finishedRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment `+
+		`FROM "order" WHERE order_state = 'finish' AND client_id = $1`,
+		clientID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	defer finishedRows.Close()
+	finished, err := getOrders(finishedRows)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return backlog, active, finished, nil
+}
+
+func (or *OrderRepository) GetPhotographerOrders(clientID int) ([]model.Order, /*backlog*/
+	[]model.Order, /*active*/
+	[]model.Order, /*finished*/
+	error) {
+	store, err := or.GetStore()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	backlogRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment `+
+		`FROM "order" WHERE order_state = 'agreed_photographer' AND $1 IN (SELECT DISTINCT photographer_id FROM `+
+		`"agreed_photographers" WHERE "order".id = "agreed_photographers".order_id)`,
+		clientID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	defer backlogRows.Close()
+	backlog, err := getOrders(backlogRows)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	activeRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment `+
+		`FROM "order" WHERE (order_state = 'meeting' OR order_state = 'watermarks_sent' OR `+
+		`order_state = 'agreed_client') AND photographer_id = $1`,
+		clientID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	defer activeRows.Close()
+	active, err := getOrders(activeRows)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	finishedRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment `+
+		`FROM "order" WHERE order_state = 'finish' AND photographer_id = $1`,
+		clientID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	defer finishedRows.Close()
+	finished, err := getOrders(finishedRows)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return backlog, active, finished, nil
 }
 
 func (or *OrderRepository) GetOrderByID(orderID int) (*model.Order, error) {
@@ -408,4 +489,39 @@ func stringToLocation(locationString string) (*model.Location, error) {
 		Latitude:  latitude,
 		Longitude: longitude,
 	}, nil
+}
+
+func getOrders(rows *sql.Rows) ([]model.Order, error) {
+	var orders []model.Order
+	var photographerID sql.NullInt64
+	var locationString string
+
+	for rows.Next() {
+		var order = model.Order{}
+		if err := rows.Scan(
+			&order.ID,
+			&order.ClientID,
+			&photographerID,
+			&order.OrderCost,
+			&locationString,
+			&order.Comment,
+		); err != nil {
+			return nil, err
+		}
+
+		location, err := stringToLocation(locationString)
+		if err != nil {
+			continue
+		}
+
+		if photographerID.Valid {
+			order.PhotographerID = int(photographerID.Int64)
+		}
+
+		order.Location.Latitude = location.Latitude
+		order.Location.Longitude = location.Longitude
+
+		orders = append(orders, order)
+	}
+	return orders, nil
 }

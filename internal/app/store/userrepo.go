@@ -24,7 +24,10 @@ func (ur *UserRepository) Create(u *model.User, key string) error {
 	}
 
 	baseRating := 5
-	baseMoney := 1000
+	var baseMoney = 0
+	if !u.IsPhotographer {
+		baseMoney = 1000
+	}
 	if err := store.db.QueryRow(
 		`INSERT INTO "user" (username, password, first_name, second_name,`+
 			`is_photographer, avatar_url, phone_number, mail, money, rating, secret_key) VALUES ($1, $2, $3,`+
@@ -109,14 +112,17 @@ func (ur *UserRepository) FindByUsername(username string) (*model.User, error) {
 	return u, nil
 }
 
-func (ur *UserRepository) GetAllPhotographer() ([]model.User, error) {
+func (ur *UserRepository) GetAllPhotographer(page int) ([]model.User, error) {
 	store, err := ur.GetStore()
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := store.db.Query(`SELECT id, username, password, first_name, second_name, is_photographer, ` +
-		`avatar_url, phone_number, mail, money, rating FROM "user" WHERE is_photographer = true`)
+	var offset = (page - 1) * 10
+
+	rows, err := store.db.Query(`SELECT id, username, password, first_name, second_name, is_photographer, `+
+		`avatar_url, phone_number, mail, money, rating FROM "user" WHERE is_photographer = true LIMIT 10 OFFSET $1`,
+		offset)
 
 	if err != nil {
 		return nil, err

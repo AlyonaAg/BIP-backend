@@ -140,14 +140,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "id order",
+                        "description": "id photographer",
                         "name": "id_photographer",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "boolean",
-                        "description": "id order",
+                        "description": "accept",
                         "name": "is_accept",
                         "in": "query",
                         "required": true
@@ -164,6 +164,45 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/apiserver.successResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/all-orders": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client api"
+                ],
+                "summary": "User orders",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structResponseGetOrdersForPhotographer"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
                         }
                     },
                     "500": {
@@ -197,13 +236,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "id order",
                         "name": "id_order",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "id user",
-                        "name": "id_user",
                         "in": "query",
                         "required": true
                     },
@@ -331,6 +363,48 @@ const docTemplate = `{
                 }
             }
         },
+        "/client/get-original": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client api"
+                ],
+                "summary": "Get original photos",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id order",
+                        "name": "id_order",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structResponseFinishOrder"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/client/get-preview": {
             "get": {
                 "security": [
@@ -347,7 +421,7 @@ const docTemplate = `{
                 "tags": [
                     "client api"
                 ],
-                "summary": "Get preview",
+                "summary": "Get preview photos",
                 "parameters": [
                     {
                         "type": "integer",
@@ -438,6 +512,15 @@ const docTemplate = `{
                     "client api"
                 ],
                 "summary": "Get list all photographers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "page",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -476,13 +559,6 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "id order",
                         "name": "id_order",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "id user",
-                        "name": "id_user",
                         "in": "query",
                         "required": true
                     },
@@ -549,13 +625,6 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "id client",
-                        "name": "id_client",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
                         "description": "review",
                         "name": "review",
                         "in": "body",
@@ -604,20 +673,50 @@ const docTemplate = `{
                     "api"
                 ],
                 "summary": "User money data",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id user",
-                        "name": "id_user",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/apiserver.structResponseGetMoney"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/ph/all-orders": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "photographer api"
+                ],
+                "summary": "Photographer orders",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structResponseGetOrdersForPhotographer"
                         }
                     },
                     "400": {
@@ -704,7 +803,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/apiserver.structResponseGetOrder"
+                            "$ref": "#/definitions/apiserver.structBaseOrderInfoForPhotographer"
                         }
                     },
                     "500": {
@@ -738,13 +837,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "id order",
                         "name": "id_order",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "id photographer",
-                        "name": "id_user",
                         "in": "query",
                         "required": true
                     },
@@ -803,13 +895,6 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "id order",
                         "name": "id_order",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "id photographer",
-                        "name": "id_photographer",
                         "in": "query",
                         "required": true
                     }
@@ -997,6 +1082,17 @@ const docTemplate = `{
                 }
             }
         },
+        "apiserver.structBaseOrderInfoForPhotographer": {
+            "type": "object",
+            "properties": {
+                "order_data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiserver.structOrderForPhotographer"
+                    }
+                }
+            }
+        },
         "apiserver.structBaseUserInfo": {
             "type": "object",
             "properties": {
@@ -1038,7 +1134,7 @@ const docTemplate = `{
                 }
             }
         },
-        "apiserver.structOrder": {
+        "apiserver.structOrderForPhotographer": {
             "type": "object",
             "properties": {
                 "client": {
@@ -1156,13 +1252,25 @@ const docTemplate = `{
                 }
             }
         },
-        "apiserver.structResponseGetOrder": {
+        "apiserver.structResponseGetOrdersForPhotographer": {
             "type": "object",
             "properties": {
-                "order_data": {
+                "active": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/apiserver.structOrder"
+                        "$ref": "#/definitions/apiserver.structOrderForPhotographer"
+                    }
+                },
+                "backlog": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiserver.structOrderForPhotographer"
+                    }
+                },
+                "finished": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiserver.structOrderForPhotographer"
                     }
                 }
             }
@@ -1254,9 +1362,6 @@ const docTemplate = `{
         "model.OrderData": {
             "type": "object",
             "properties": {
-                "client_id": {
-                    "type": "integer"
-                },
                 "comment": {
                     "type": "string"
                 },
@@ -1310,7 +1415,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "51.250.22.74:8080",
+	Host:             "51.250.18.28:8080",
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "BIP API",
