@@ -1,11 +1,10 @@
 package apiserver
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
-
 	"BIP_backend/internal/app/model"
 	"BIP_backend/internal/app/store"
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type errorResponse struct {
@@ -29,6 +28,28 @@ type structBaseUserInfo struct {
 	IsPhotographer   bool             `json:"is_photographer"`
 }
 
+type structOrderForPhotographer struct {
+	ID        int                 `json:"id"`
+	Client    *structBaseUserInfo `json:"client"`
+	OrderCost int                 `json:"order_cost"`
+	Location  model.Location      `json:"coordinates"`
+}
+
+type structBaseOrderInfoForPhotographer struct {
+	OrderList []structOrderForPhotographer `json:"order_data"`
+}
+
+type structOrderForClient struct {
+	ID           int                 `json:"id"`
+	Photographer *structBaseUserInfo `json:"photographer"`
+	OrderCost    int                 `json:"order_cost"`
+	Location     model.Location      `json:"coordinates"`
+}
+
+type structBaseOrderInfoForClient struct {
+	OrderList []structOrderForClient `json:"order_data"`
+}
+
 type structResponseSessionsCreate struct {
 	JWT string `json:"jwt"`
 }
@@ -36,17 +57,6 @@ type structResponseSessionsCreate struct {
 type structResponse2Factor struct {
 	JWT  string              `json:"jwt"`
 	User *structBaseUserInfo `json:"user"`
-}
-
-type structOrder struct {
-	ID        int                 `json:"id"`
-	Client    *structBaseUserInfo `json:"client"`
-	OrderCost int                 `json:"order_cost"`
-	Location  model.Location      `json:"coordinates"`
-}
-
-type structResponseGetOrder struct {
-	OrderList []structOrder `json:"order_data"`
 }
 
 type structResponseAgreedPhotographers struct {
@@ -75,6 +85,18 @@ type structResponseConfirmQRCode struct {
 
 type structResponseGetMoney struct {
 	Money int `json:"money"`
+}
+
+type structResponseGetOrdersForPhotographer struct {
+	Backlog  []structOrderForPhotographer `json:"backlog"`
+	Active   []structOrderForPhotographer `json:"active"`
+	Finished []structOrderForPhotographer `json:"finished"`
+}
+
+type structResponseGetOrdersForClient struct {
+	Backlog  []structOrderForClient `json:"backlog"`
+	Active   []structOrderForClient `json:"active"`
+	Finished []structOrderForClient `json:"finished"`
 }
 
 func newSuccessResponse(success bool, err error) *successResponse {
@@ -125,23 +147,10 @@ func responseGetPreview(URLWatermark string) *structResponseGetPreview {
 	}
 }
 
-func responseGetOrder(orders []model.Order, ur *store.UserRepository) (*structResponseGetOrder, error) {
-	var ordersData = &structResponseGetOrder{}
-
-	for _, order := range orders {
-		u, err := ur.FindByID(order.ClientID)
-		if err != nil {
-			return nil, err
-		}
-		bu := getBaseUserInfo(u)
-		var orderData = structOrder{
-			ID:        order.ID,
-			OrderCost: order.OrderCost,
-			Client:    bu,
-			Location:  order.Location,
-		}
-
-		ordersData.OrderList = append(ordersData.OrderList, orderData)
+func responseGetOrder(orders []model.Order, ur *store.UserRepository) (*structBaseOrderInfoForPhotographer, error) {
+	ordersData, err := getBaseOrderInfoForPhotographer(orders, ur)
+	if err != nil {
+		return nil, err
 	}
 	return ordersData, nil
 }
@@ -180,6 +189,54 @@ func responseGetMoney(money int) *structResponseGetMoney {
 	}
 }
 
+func responseGetOrdersForPhotographer(backlog, active, finished []model.Order,
+	ur *store.UserRepository) (*structResponseGetOrdersForPhotographer, error) {
+	backlogBaseInfo, err := getBaseOrderInfoForPhotographer(backlog, ur)
+	if err != nil {
+		return nil, err
+	}
+
+	activeBaseInfo, err := getBaseOrderInfoForPhotographer(active, ur)
+	if err != nil {
+		return nil, err
+	}
+
+	finishBaseInfo, err := getBaseOrderInfoForPhotographer(finished, ur)
+	if err != nil {
+		return nil, err
+	}
+
+	return &structResponseGetOrdersForPhotographer{
+		Backlog:  backlogBaseInfo.OrderList,
+		Active:   activeBaseInfo.OrderList,
+		Finished: finishBaseInfo.OrderList,
+	}, nil
+}
+
+func responseGetOrdersForClient(backlog, active, finished []model.Order,
+	ur *store.UserRepository) (*structResponseGetOrdersForClient, error) {
+	backlogBaseInfo, err := getBaseOrderInfoForClient(backlog, ur)
+	if err != nil {
+		return nil, err
+	}
+
+	activeBaseInfo, err := getBaseOrderInfoForClient(active, ur)
+	if err != nil {
+		return nil, err
+	}
+
+	finishBaseInfo, err := getBaseOrderInfoForClient(finished, ur)
+	if err != nil {
+		return nil, err
+	}
+
+	return &structResponseGetOrdersForClient{
+		Backlog:  backlogBaseInfo.OrderList,
+		Active:   activeBaseInfo.OrderList,
+		Finished: finishBaseInfo.OrderList,
+	}, nil
+}
+
 func getBaseUserInfo(user *model.User) *structBaseUserInfo {
 	return &structBaseUserInfo{
 		ID:               user.ID,
@@ -193,4 +250,51 @@ func getBaseUserInfo(user *model.User) *structBaseUserInfo {
 		ListPhotoProfile: user.ListPhotoProfile,
 		IsPhotographer:   user.IsPhotographer,
 	}
+}
+
+func getBaseOrderInfoForPhotographer(orders []model.Order,
+	ur *store.UserRepository) (*structBaseOrderInfoForPhotographer, error) {
+	var ordersData = &structBaseOrderInfoForPhotographer{}
+
+	for _, order := range orders {
+		u, err := ur.FindByID(order.ClientID)
+		if err != nil {
+			return nil, err
+		}
+		bu := getBaseUserInfo(u)
+		var orderData = structOrderForPhotographer{
+			ID:        order.ID,
+			OrderCost: order.OrderCost,
+			Client:    bu,
+			Location:  order.Location,
+		}
+
+		ordersData.OrderList = append(ordersData.OrderList, orderData)
+	}
+	return ordersData, nil
+}
+
+func getBaseOrderInfoForClient(orders []model.Order,
+	ur *store.UserRepository) (*structBaseOrderInfoForClient, error) {
+	var ordersData = &structBaseOrderInfoForClient{}
+
+	for _, order := range orders {
+		var bu *structBaseUserInfo
+		if order.PhotographerID != 0 {
+			u, err := ur.FindByID(order.PhotographerID)
+			if err != nil {
+				return nil, err
+			}
+			bu = getBaseUserInfo(u)
+		}
+		var orderData = structOrderForClient{
+			ID:           order.ID,
+			OrderCost:    order.OrderCost,
+			Photographer: bu,
+			Location:     order.Location,
+		}
+
+		ordersData.OrderList = append(ordersData.OrderList, orderData)
+	}
+	return ordersData, nil
 }

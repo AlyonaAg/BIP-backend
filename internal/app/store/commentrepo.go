@@ -9,7 +9,7 @@ type CommentRepository struct {
 	store *Store
 }
 
-func (cr *CommentRepository) Create(userID, userComID, rating int, state, content string) error {
+func (cr *CommentRepository) Create(orderID, userID, userComID, rating int, state, content string) error {
 	store, err := cr.GetStore()
 	if err != nil {
 		return err
@@ -17,8 +17,8 @@ func (cr *CommentRepository) Create(userID, userComID, rating int, state, conten
 
 	var ID int
 	if err := store.db.QueryRow(
-		`INSERT INTO "comments" (user_id, user_com_id, content, rating, state) `+
-			`VALUES ($1, $2, $3, $4, $5) RETURNING id`, userID, userComID, content, rating, state,
+		`INSERT INTO "comments" (user_id, user_com_id, content, rating, state, order_id) `+
+			`VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`, userID, userComID, content, rating, state, orderID,
 	).Scan(
 		&ID,
 	); err != nil {

@@ -116,7 +116,9 @@ func (s *Server) configureRouter() error {
 			apiOrdinaryUser.POST("/cancel", s.checkOrderForClient(), s.handlerCancel())
 			apiOrdinaryUser.GET("/offer", s.checkOrderForClient(), s.handlerGetAgreedPhotographer())
 			apiOrdinaryUser.GET("/photographers", s.handlerGetAllPhotographer())
+			apiOrdinaryUser.GET("/all-orders", s.handlerGetClientOrders())
 			apiOrdinaryUser.GET("/get-preview", s.checkOrderForClient(), s.handlerGetPreview())
+			apiOrdinaryUser.GET("/get-original", s.checkOrderForClient(), s.handlerGetOriginal())
 			apiOrdinaryUser.GET("/qrcode", s.checkOrderForClient(), s.handlerCreateQRCode())
 			apiOrdinaryUser.PATCH("/accept", s.checkOrderForClient(), s.handlerAccept())
 		}
@@ -127,6 +129,7 @@ func (s *Server) configureRouter() error {
 			apiPhotographer.POST("/upload", s.checkOrderForPhotographer(), s.handlerUpload())
 			apiPhotographer.POST("/review", s.checkOrderForPhotographer(), s.handlerPhotographerReview())
 			apiPhotographer.GET("/orders", s.handlerGetOrder())
+			apiPhotographer.GET("/all-orders", s.handlerGetPhotographerOrders())
 			apiPhotographer.PATCH("/select", s.handlerSelect())
 			apiPhotographer.PATCH("/confirm-qrcode", s.handlerConfirmQRCode())
 		}
