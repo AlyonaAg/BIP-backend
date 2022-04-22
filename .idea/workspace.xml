@@ -10,19 +10,8 @@
       <change beforePath="$PROJECT_DIR$/docs/docs.go" beforeDir="false" afterPath="$PROJECT_DIR$/docs/docs.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docs/swagger.json" beforeDir="false" afterPath="$PROJECT_DIR$/docs/swagger.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docs/swagger.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docs/swagger.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/app/apiserver/apiserver.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/apiserver/apiserver.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/app/apiserver/request.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/apiserver/request.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/app/apiserver/response.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/apiserver/response.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/app/apiserver/routerfunction.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/apiserver/routerfunction.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/app/model/order.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/model/order.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/app/model/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/model/user.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/app/store/commentrepo.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/store/commentrepo.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/app/store/orderrepo.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/store/orderrepo.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/app/store/store.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/store/store.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/app/store/userrepo.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/store/userrepo.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/service/qrcode/qrcode.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/service/qrcode/qrcode.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/migrations/000001_init.up.sql" beforeDir="false" afterPath="$PROJECT_DIR$/migrations/000001_init.up.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

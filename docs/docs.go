@@ -1140,8 +1140,9 @@ const docTemplate = `{
                 "client": {
                     "$ref": "#/definitions/apiserver.structBaseUserInfo"
                 },
-                "coordinates": {
-                    "$ref": "#/definitions/model.Location"
+                "comment": {
+                    "description": "Location  model.Location      ` + "`" + `json:\"coordinates\"` + "`" + `",
+                    "type": "string"
                 },
                 "id": {
                     "type": "integer"

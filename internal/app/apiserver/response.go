@@ -32,7 +32,8 @@ type structOrderForPhotographer struct {
 	ID        int                 `json:"id"`
 	Client    *structBaseUserInfo `json:"client"`
 	OrderCost int                 `json:"order_cost"`
-	Location  model.Location      `json:"coordinates"`
+	// Location  model.Location      `json:"coordinates"`
+	Comment string `json:"comment"`
 }
 
 type structBaseOrderInfoForPhotographer struct {
@@ -43,7 +44,8 @@ type structOrderForClient struct {
 	ID           int                 `json:"id"`
 	Photographer *structBaseUserInfo `json:"photographer"`
 	OrderCost    int                 `json:"order_cost"`
-	Location     model.Location      `json:"coordinates"`
+	//Location     model.Location      `json:"coordinates"`
+	Comment string `json:"comment"`
 }
 
 type structBaseOrderInfoForClient struct {
@@ -266,7 +268,8 @@ func getBaseOrderInfoForPhotographer(orders []model.Order,
 			ID:        order.ID,
 			OrderCost: order.OrderCost,
 			Client:    bu,
-			Location:  order.Location,
+			//Location:  order.Location,
+			Comment: order.Comment,
 		}
 
 		ordersData.OrderList = append(ordersData.OrderList, orderData)
@@ -291,7 +294,8 @@ func getBaseOrderInfoForClient(orders []model.Order,
 			ID:           order.ID,
 			OrderCost:    order.OrderCost,
 			Photographer: bu,
-			Location:     order.Location,
+			//Location:     order.Location,
+			Comment: order.Comment,
 		}
 
 		ordersData.OrderList = append(ordersData.OrderList, orderData)

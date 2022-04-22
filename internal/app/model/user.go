@@ -46,6 +46,10 @@ func (u *User) BeforeCreate() error {
 		return nil
 	}
 	u.Password = enc
+
+	if u.AvatarURL == "" {
+		u.AvatarURL = "https://yt3.ggpht.com/ytc/AKedOLSio27bVkyp7ExnEPfVHealr73MJkXXH0VlSi_f=s900-c-k-c0x00ffffff-no-rj"
+	}
 	return nil
 }
 
