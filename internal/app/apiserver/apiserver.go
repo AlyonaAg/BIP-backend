@@ -102,10 +102,13 @@ func (s *Server) configureRouter() error {
 	{
 		api.POST("/registration", s.handleUserCreate())
 		api.POST("/auth", s.handleSessionsCreate())
+		api.GET("/photographers", s.handlerGetAllPhotographer())
+		api.GET("/dakhnovich", s.handlerAD())
 
 		api.POST("/auth2fa", middleware.UserIdentityWithUnauthorizedToken(), s.handler2Factor())
 		api.GET("/profile", middleware.UserIdentityWithAuthorizedToken(), s.handlerProfile())
 		api.GET("/get-money", middleware.UserIdentityWithAuthorizedToken(), s.handlerGetMoney())
+		api.POST("/put-money", middleware.UserIdentityWithAuthorizedToken(), s.handlerPutMoney())
 
 		apiOrdinaryUser := api.Group("/client").
 			Use(middleware.UserIdentityWithAuthorizedToken(), middleware.OrdinaryUserIdentity())
@@ -115,7 +118,6 @@ func (s *Server) configureRouter() error {
 			apiOrdinaryUser.POST("/review", s.checkOrderForClient(), s.handlerClientReview())
 			apiOrdinaryUser.POST("/cancel", s.checkOrderForClient(), s.handlerCancel())
 			apiOrdinaryUser.GET("/offer", s.checkOrderForClient(), s.handlerGetAgreedPhotographer())
-			apiOrdinaryUser.GET("/photographers", s.handlerGetAllPhotographer())
 			apiOrdinaryUser.GET("/all-orders", s.handlerGetClientOrders())
 			apiOrdinaryUser.GET("/get-preview", s.checkOrderForClient(), s.handlerGetPreview())
 			apiOrdinaryUser.GET("/get-original", s.checkOrderForClient(), s.handlerGetOriginal())

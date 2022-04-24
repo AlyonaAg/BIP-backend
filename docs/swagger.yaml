@@ -39,6 +39,18 @@ definitions:
       username:
         type: string
     type: object
+  apiserver.structOrderForClient:
+    properties:
+      comment:
+        description: Location     model.Location      `json:"coordinates"`
+        type: string
+      id:
+        type: integer
+      order_cost:
+        type: integer
+      photographer:
+        $ref: '#/definitions/apiserver.structBaseUserInfo'
+    type: object
   apiserver.structOrderForPhotographer:
     properties:
       client:
@@ -55,6 +67,11 @@ definitions:
     properties:
       code:
         type: string
+    type: object
+  apiserver.structRequestPutMoney:
+    properties:
+      money:
+        type: integer
     type: object
   apiserver.structRequestReview:
     properties:
@@ -114,6 +131,21 @@ definitions:
     properties:
       money:
         type: integer
+    type: object
+  apiserver.structResponseGetOrdersForClient:
+    properties:
+      active:
+        items:
+          $ref: '#/definitions/apiserver.structOrderForClient'
+        type: array
+      backlog:
+        items:
+          $ref: '#/definitions/apiserver.structOrderForClient'
+        type: array
+      finished:
+        items:
+          $ref: '#/definitions/apiserver.structOrderForClient'
+        type: array
     type: object
   apiserver.structResponseGetOrdersForPhotographer:
     properties:
@@ -331,7 +363,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/apiserver.structResponseGetOrdersForPhotographer'
+            $ref: '#/definitions/apiserver.structResponseGetOrdersForClient'
         "400":
           description: Bad Request
           schema:
@@ -518,32 +550,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get list agreed photographers
-      tags:
-      - client api
-  /client/photographers:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: page
-        in: query
-        name: page
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/apiserver.structResponseAllPhotographers'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/apiserver.errorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Get list all photographers
       tags:
       - client api
   /client/qrcode:
@@ -823,6 +829,30 @@ paths:
       summary: Upload link
       tags:
       - photographer api
+  /photographers:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structResponseAllPhotographers'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      summary: Get list all photographers
+      tags:
+      - api
   /profile:
     get:
       consumes:
@@ -851,6 +881,37 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Info about user
+      tags:
+      - api
+  /put-money:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: money
+        in: body
+        name: money
+        required: true
+        schema:
+          $ref: '#/definitions/apiserver.structRequestPutMoney'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.successResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Put money
       tags:
       - api
   /registration:

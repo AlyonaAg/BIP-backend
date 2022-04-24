@@ -18,3 +18,7 @@ type structRequestReview struct {
 	Rating  int    `json:"rating"`
 	Comment string `json:"comment"`
 }
+
+type structRequestPutMoney struct {
+	Money int `json:"money"`
+}

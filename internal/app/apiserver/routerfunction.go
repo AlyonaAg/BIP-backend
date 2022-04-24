@@ -398,14 +398,13 @@ func (s *Server) handlerGetAgreedPhotographer() gin.HandlerFunc {
 }
 
 // @Summary      Get list all photographers
-// @Security 	 ApiKeyAuth
-// @Tags         client api
+// @Tags         api
 // @Accept       json
 // @Produce      json
 // @Param        page  query  int  true  "page"
 // @Success      200  {object}  structResponseAllPhotographers
 // @Failure      500  {object}  errorResponse
-// @Router       /client/photographers [get]
+// @Router       /photographers [get]
 func (s *Server) handlerGetAllPhotographer() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		page, err := strconv.Atoi(c.Query("page"))
@@ -1157,12 +1156,18 @@ func (s *Server) handlerGetMoney() gin.HandlerFunc {
 	}
 }
 
+func (s *Server) handlerAD() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(http.StatusOK, "дахнович лох")
+	}
+}
+
 // @Summary      User orders
 // @Security 	 ApiKeyAuth
 // @Tags         client api
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  structResponseGetOrdersForPhotographer
+// @Success      200  {object}  structResponseGetOrdersForClient
 // @Failure      400,500  {object}  errorResponse
 // @Router       /client/all-orders [GET]
 func (s *Server) handlerGetClientOrders() gin.HandlerFunc {
@@ -1224,6 +1229,44 @@ func (s *Server) handlerGetPhotographerOrders() gin.HandlerFunc {
 		response, err := responseGetOrdersForPhotographer(backlog, active, finished, store.User())
 
 		c.JSON(http.StatusOK, response)
+	}
+}
+
+// @Summary      Put money
+// @Security 	 ApiKeyAuth
+// @Tags         api
+// @Accept       json
+// @Produce      json
+// @Param        money  body  structRequestPutMoney  true  "money"
+// @Success      200  {object}  successResponse
+// @Failure      400,500  {object}  errorResponse
+// @Router       /put-money [POST]
+func (s *Server) handlerPutMoney() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		clientID, ok := c.Get("user_id")
+		if !ok {
+			newErrorResponse(c, http.StatusUnauthorized, incorrectToken, incorrectToken)
+			return
+		}
+
+		var m = &structRequestPutMoney{}
+		if err := c.ShouldBindJSON(m); err != nil {
+			newErrorResponse(c, http.StatusBadRequest, incorrectRequestData, err)
+			return
+		}
+
+		store, err := s.GetStore()
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+			return
+		}
+
+		if err = store.User().PutMoneyByID(clientID.(int), m.Money); err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, newSuccessResponse(true, nil))
 	}
 }
 

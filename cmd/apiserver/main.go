@@ -20,7 +20,7 @@ func init() {
 // @version         1.0
 // @description     API for photographer search app
 
-// @host      51.250.22.74:8080
+// @host       51.250.22.74:8080
 // @BasePath  /api
 
 // @securityDefinitions.apikey ApiKeyAuth

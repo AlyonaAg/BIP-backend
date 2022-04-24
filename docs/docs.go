@@ -196,7 +196,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/apiserver.structResponseGetOrdersForPhotographer"
+                            "$ref": "#/definitions/apiserver.structResponseGetOrdersForClient"
                         }
                     },
                     "400": {
@@ -484,48 +484,6 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/apiserver.successResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.errorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/client/photographers": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "client api"
-                ],
-                "summary": "Get list all photographers",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "page",
-                        "name": "page",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.structResponseAllPhotographers"
                         }
                     },
                     "500": {
@@ -978,6 +936,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/photographers": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "Get list all photographers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "page",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structResponseAllPhotographers"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/profile": {
             "get": {
                 "security": [
@@ -1009,6 +1004,56 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/apiserver.structBaseUserInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/put-money": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "Put money",
+                "parameters": [
+                    {
+                        "description": "money",
+                        "name": "money",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structRequestPutMoney"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.successResponse"
                         }
                     },
                     "400": {
@@ -1134,6 +1179,24 @@ const docTemplate = `{
                 }
             }
         },
+        "apiserver.structOrderForClient": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "description": "Location     model.Location      ` + "`" + `json:\"coordinates\"` + "`" + `",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "order_cost": {
+                    "type": "integer"
+                },
+                "photographer": {
+                    "$ref": "#/definitions/apiserver.structBaseUserInfo"
+                }
+            }
+        },
         "apiserver.structOrderForPhotographer": {
             "type": "object",
             "properties": {
@@ -1157,6 +1220,14 @@ const docTemplate = `{
             "properties": {
                 "code": {
                     "type": "string"
+                }
+            }
+        },
+        "apiserver.structRequestPutMoney": {
+            "type": "object",
+            "properties": {
+                "money": {
+                    "type": "integer"
                 }
             }
         },
@@ -1250,6 +1321,29 @@ const docTemplate = `{
             "properties": {
                 "money": {
                     "type": "integer"
+                }
+            }
+        },
+        "apiserver.structResponseGetOrdersForClient": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiserver.structOrderForClient"
+                    }
+                },
+                "backlog": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiserver.structOrderForClient"
+                    }
+                },
+                "finished": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiserver.structOrderForClient"
+                    }
                 }
             }
         },
