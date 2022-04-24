@@ -16,103 +16,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/auth": {
-            "post": {
-                "description": "first step of two-factor authentication",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "api"
-                ],
-                "summary": "Auth",
-                "parameters": [
-                    {
-                        "description": "username and password",
-                        "name": "user_auth",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.structRequestSessionsCreate"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.structResponseSessionsCreate"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.errorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.errorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/auth2fa": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "second step of two-factor authentication",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "api"
-                ],
-                "summary": "Auth2Factor",
-                "parameters": [
-                    {
-                        "description": "code sent by mail",
-                        "name": "code",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.structRequest2Factor"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.structResponse2Factor"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.errorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.errorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/client/accept": {
             "patch": {
                 "security": [
@@ -1021,56 +924,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/put-money": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "api"
-                ],
-                "summary": "Put money",
-                "parameters": [
-                    {
-                        "description": "money",
-                        "name": "money",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.structRequestPutMoney"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.successResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.errorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.errorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/registration": {
             "post": {
                 "description": "registering a new account",
@@ -1215,22 +1068,6 @@ const docTemplate = `{
                 }
             }
         },
-        "apiserver.structRequest2Factor": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                }
-            }
-        },
-        "apiserver.structRequestPutMoney": {
-            "type": "object",
-            "properties": {
-                "money": {
-                    "type": "integer"
-                }
-            }
-        },
         "apiserver.structRequestReview": {
             "type": "object",
             "properties": {
@@ -1242,17 +1079,6 @@ const docTemplate = `{
                 }
             }
         },
-        "apiserver.structRequestSessionsCreate": {
-            "type": "object",
-            "properties": {
-                "password": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
         "apiserver.structRequestUpload": {
             "type": "object",
             "properties": {
@@ -1261,17 +1087,6 @@ const docTemplate = `{
                 },
                 "url_watermark": {
                     "type": "string"
-                }
-            }
-        },
-        "apiserver.structResponse2Factor": {
-            "type": "object",
-            "properties": {
-                "jwt": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/apiserver.structBaseUserInfo"
                 }
             }
         },
@@ -1374,14 +1189,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "url_watermark": {
-                    "type": "string"
-                }
-            }
-        },
-        "apiserver.structResponseSessionsCreate": {
-            "type": "object",
-            "properties": {
-                "jwt": {
                     "type": "string"
                 }
             }

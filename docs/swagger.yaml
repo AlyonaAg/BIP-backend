@@ -63,16 +63,6 @@ definitions:
       order_cost:
         type: integer
     type: object
-  apiserver.structRequest2Factor:
-    properties:
-      code:
-        type: string
-    type: object
-  apiserver.structRequestPutMoney:
-    properties:
-      money:
-        type: integer
-    type: object
   apiserver.structRequestReview:
     properties:
       comment:
@@ -80,26 +70,12 @@ definitions:
       rating:
         type: integer
     type: object
-  apiserver.structRequestSessionsCreate:
-    properties:
-      password:
-        type: string
-      username:
-        type: string
-    type: object
   apiserver.structRequestUpload:
     properties:
       url_origin:
         type: string
       url_watermark:
         type: string
-    type: object
-  apiserver.structResponse2Factor:
-    properties:
-      jwt:
-        type: string
-      user:
-        $ref: '#/definitions/apiserver.structBaseUserInfo'
     type: object
   apiserver.structResponseAgreedPhotographers:
     properties:
@@ -165,11 +141,6 @@ definitions:
   apiserver.structResponseGetPreview:
     properties:
       url_watermark:
-        type: string
-    type: object
-  apiserver.structResponseSessionsCreate:
-    properties:
-      jwt:
         type: string
     type: object
   apiserver.successResponse:
@@ -251,68 +222,6 @@ info:
   title: BIP API
   version: "1.0"
 paths:
-  /auth:
-    post:
-      consumes:
-      - application/json
-      description: first step of two-factor authentication
-      parameters:
-      - description: username and password
-        in: body
-        name: user_auth
-        required: true
-        schema:
-          $ref: '#/definitions/apiserver.structRequestSessionsCreate'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/apiserver.structResponseSessionsCreate'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/apiserver.errorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/apiserver.errorResponse'
-      summary: Auth
-      tags:
-      - api
-  /auth2fa:
-    post:
-      consumes:
-      - application/json
-      description: second step of two-factor authentication
-      parameters:
-      - description: code sent by mail
-        in: body
-        name: code
-        required: true
-        schema:
-          $ref: '#/definitions/apiserver.structRequest2Factor'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/apiserver.structResponse2Factor'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/apiserver.errorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/apiserver.errorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Auth2Factor
-      tags:
-      - api
   /client/accept:
     patch:
       consumes:
@@ -881,37 +790,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Info about user
-      tags:
-      - api
-  /put-money:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: money
-        in: body
-        name: money
-        required: true
-        schema:
-          $ref: '#/definitions/apiserver.structRequestPutMoney'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/apiserver.successResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/apiserver.errorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/apiserver.errorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Put money
       tags:
       - api
   /registration:

@@ -72,15 +72,6 @@ func (s *Server) handleUserCreate() gin.HandlerFunc {
 	}
 }
 
-// @Summary      Auth
-// @Description  first step of two-factor authentication
-// @Tags         api
-// @Accept       json
-// @Produce      json
-// @Param        user_auth  body  structRequestSessionsCreate  true  "username and password"
-// @Success      200 {object}  structResponseSessionsCreate
-// @Failure      401,500  {object}  errorResponse
-// @Router       /auth [post]
 func (s *Server) handleSessionsCreate() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var r = &structRequestSessionsCreate{}
@@ -147,16 +138,6 @@ func (s *Server) handleSessionsCreate() gin.HandlerFunc {
 	}
 }
 
-// @Summary      Auth2Factor
-// @Security 	 ApiKeyAuth
-// @Description  second step of two-factor authentication
-// @Tags         api
-// @Accept       json
-// @Produce      json
-// @Param        code  body  structRequest2Factor  true  "code sent by mail"
-// @Success      200 {object}  structResponse2Factor
-// @Failure      401,500  {object}  errorResponse
-// @Router       /auth2fa [post]
 func (s *Server) handler2Factor() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var r = &structRequest2Factor{}
@@ -1232,15 +1213,6 @@ func (s *Server) handlerGetPhotographerOrders() gin.HandlerFunc {
 	}
 }
 
-// @Summary      Put money
-// @Security 	 ApiKeyAuth
-// @Tags         api
-// @Accept       json
-// @Produce      json
-// @Param        money  body  structRequestPutMoney  true  "money"
-// @Success      200  {object}  successResponse
-// @Failure      400,500  {object}  errorResponse
-// @Router       /put-money [POST]
 func (s *Server) handlerPutMoney() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clientID, ok := c.Get("user_id")
