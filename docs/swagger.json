@@ -6,7 +6,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "51.250.22.74:8080",
+    "host": "192.168.1.71:8080",
     "basePath": "/api",
     "paths": {
         "/client/accept": {
@@ -612,13 +612,22 @@
                         "name": "qrcode",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "description": "coordinates",
+                        "name": "coordinates",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structRequestConfirmQRCode"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/apiserver.structResponseCreateQRCode"
+                            "$ref": "#/definitions/apiserver.structResponseConfirmQRCode"
                         }
                     },
                     "400": {
@@ -1040,6 +1049,9 @@
                 },
                 "photographer": {
                     "$ref": "#/definitions/apiserver.structBaseUserInfo"
+                },
+                "state": {
+                    "type": "string"
                 }
             }
         },
@@ -1058,6 +1070,20 @@
                 },
                 "order_cost": {
                     "type": "integer"
+                },
+                "state": {
+                    "type": "string"
+                }
+            }
+        },
+        "apiserver.structRequestConfirmQRCode": {
+            "type": "object",
+            "properties": {
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
                 }
             }
         },
@@ -1102,6 +1128,14 @@
                     "items": {
                         "$ref": "#/definitions/apiserver.structBaseUserInfo"
                     }
+                }
+            }
+        },
+        "apiserver.structResponseConfirmQRCode": {
+            "type": "object",
+            "properties": {
+                "money": {
+                    "type": "integer"
                 }
             }
         },

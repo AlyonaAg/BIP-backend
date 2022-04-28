@@ -619,13 +619,22 @@ const docTemplate = `{
                         "name": "qrcode",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "description": "coordinates",
+                        "name": "coordinates",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structRequestConfirmQRCode"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/apiserver.structResponseCreateQRCode"
+                            "$ref": "#/definitions/apiserver.structResponseConfirmQRCode"
                         }
                     },
                     "400": {
@@ -1047,6 +1056,9 @@ const docTemplate = `{
                 },
                 "photographer": {
                     "$ref": "#/definitions/apiserver.structBaseUserInfo"
+                },
+                "state": {
+                    "type": "string"
                 }
             }
         },
@@ -1065,6 +1077,20 @@ const docTemplate = `{
                 },
                 "order_cost": {
                     "type": "integer"
+                },
+                "state": {
+                    "type": "string"
+                }
+            }
+        },
+        "apiserver.structRequestConfirmQRCode": {
+            "type": "object",
+            "properties": {
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
                 }
             }
         },
@@ -1109,6 +1135,14 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/apiserver.structBaseUserInfo"
                     }
+                }
+            }
+        },
+        "apiserver.structResponseConfirmQRCode": {
+            "type": "object",
+            "properties": {
+                "money": {
+                    "type": "integer"
                 }
             }
         },
@@ -1317,7 +1351,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "51.250.22.74:8080",
+	Host:             "192.168.1.71:8080",
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "BIP API",

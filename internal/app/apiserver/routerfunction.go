@@ -5,10 +5,10 @@ import (
 	"BIP_backend/internal/service/qrcode"
 	"encoding/hex"
 	"errors"
+	"github.com/gin-gonic/gin"
+	"math"
 	"net/http"
 	"strconv"
-
-	"github.com/gin-gonic/gin"
 
 	"BIP_backend/internal/app/model"
 	"BIP_backend/internal/service/auth"
@@ -612,7 +612,7 @@ func (s *Server) handlerGetPreview() gin.HandlerFunc {
 			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
 			return
 		}
-		if o.OrderState != model.Meeting && o.OrderState != model.Finish && o.OrderState != model.WatermarkSent {
+		if o.OrderState != model.Meeting && o.OrderState != model.WatermarkSent {
 			newErrorResponse(c, http.StatusBadRequest, incorrectAction, incorrectAction)
 			return
 		}
@@ -697,11 +697,15 @@ func (s *Server) handlerCreateQRCode() gin.HandlerFunc {
 			newErrorResponse(c, http.StatusBadRequest, incorrectLocation, err)
 			return
 		}
+		latitude = math.Floor(latitude*100) / 100
+
 		longitude, err := strconv.ParseFloat(c.Query("longitude"), 64)
 		if err != nil {
 			newErrorResponse(c, http.StatusBadRequest, incorrectLocation, err)
 			return
 		}
+		longitude = math.Floor(longitude*100) / 100
+		
 		userID, ok := c.Get("user_id")
 		if !ok {
 			newErrorResponse(c, http.StatusBadRequest, incorrectToken, incorrectToken)
@@ -723,7 +727,7 @@ func (s *Server) handlerCreateQRCode() gin.HandlerFunc {
 			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
 			return
 		}
-		if o.OrderState != model.AgreedClient {
+		if o.OrderState != model.AgreedClient && o.OrderState != model.Meeting {
 			newErrorResponse(c, http.StatusBadRequest, incorrectAction, incorrectAction)
 			return
 		}
@@ -781,7 +785,8 @@ func (s *Server) handlerCreateQRCode() gin.HandlerFunc {
 // @Accept       json
 // @Produce      json
 // @Param        qrcode  query  string  true  "qr-code"
-// @Success      200  {object}  structResponseCreateQRCode
+// @Param		 coordinates body structRequestConfirmQRCode  true  "coordinates"
+// @Success      200  {object}  structResponseConfirmQRCode
 // @Failure      400,500  {object}  errorResponse
 // @Router       /ph/confirm-qrcode [PATCH]
 func (s *Server) handlerConfirmQRCode() gin.HandlerFunc {
@@ -790,6 +795,12 @@ func (s *Server) handlerConfirmQRCode() gin.HandlerFunc {
 		qrCoder, err := qrcode.NewQRCoder()
 		if err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+			return
+		}
+
+		var o = &structRequestConfirmQRCode{}
+		if err := c.ShouldBindJSON(o); err != nil {
+			newErrorResponse(c, http.StatusBadRequest, incorrectRequestData, err)
 			return
 		}
 
@@ -802,6 +813,12 @@ func (s *Server) handlerConfirmQRCode() gin.HandlerFunc {
 		QRLocation, QROrderID, QRSecret, err := qrCoder.DecodeQRCode(qrCode)
 		if err != nil {
 			newErrorResponse(c, http.StatusBadRequest, incorrectQRCode, err)
+			return
+		}
+
+		if QRLocation.Longitude != math.Floor(o.Longitude*100)/100 ||
+			QRLocation.Latitude != math.Floor(o.Latitude*100)/100 {
+			newErrorResponse(c, http.StatusBadRequest, incorrectQRCode, incorrectQRCode)
 			return
 		}
 
@@ -849,7 +866,6 @@ func (s *Server) handlerConfirmQRCode() gin.HandlerFunc {
 		}
 
 		store.User().PutMoneyByID(photographerID.(int), int(float64(orderCost)*0.3))
-		cache.Del(strconv.Itoa(QROrderID))
 
 		c.JSON(http.StatusOK, responseConfirmQRCode(int(float64(orderCost)*0.3)))
 	}

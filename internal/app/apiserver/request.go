@@ -22,3 +22,8 @@ type structRequestReview struct {
 type structRequestPutMoney struct {
 	Money int `json:"money"`
 }
+
+type structRequestConfirmQRCode struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
