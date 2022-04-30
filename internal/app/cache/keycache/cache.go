@@ -2,6 +2,7 @@ package keycache
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -38,6 +39,7 @@ func (c *Cache) Open() error {
 }
 
 func (c *Cache) Set(key, value string) error {
+	fmt.Println("[" + key + "] Set temp key:" + value)
 	config, err := c.GetConfig()
 	if err != nil {
 		return err
@@ -67,10 +69,13 @@ func (c *Cache) Get(key string) (string, error) {
 		return "", err
 	}
 
+	fmt.Println("[" + key + "] Get temp key:" + val)
 	return val, nil
 }
 
 func (c *Cache) Del(key string) error {
+	fmt.Println("[" + key + "] Del temp key")
+
 	cache, err := c.GetCache()
 	if err != nil {
 		return err

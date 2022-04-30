@@ -2,11 +2,10 @@ package apiserver
 
 import (
 	"errors"
-	"log"
-
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
+	"log"
 
 	_ "BIP_backend/docs"
 	"BIP_backend/internal/app/cache/keycache"
@@ -97,6 +96,9 @@ func (s *Server) configureRouter() error {
 	if err != nil {
 		return err
 	}
+
+	router.Use(middleware.ResponseLoggerMiddleware())
+	router.Use(middleware.RequestLoggerMiddleware())
 
 	api := router.Group("/api")
 	{
