@@ -3,6 +3,7 @@ package apiserver
 import (
 	"BIP_backend/internal/app/model"
 	"BIP_backend/internal/app/store"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -32,7 +33,9 @@ type structOrderForPhotographer struct {
 	ID        int                 `json:"id"`
 	Client    *structBaseUserInfo `json:"client"`
 	OrderCost int                 `json:"order_cost"`
-	Location  model.Location      `json:"coordinates"`
+	// Location  model.Location      `json:"coordinates"`
+	Comment string `json:"comment"`
+	State   string `json:"state"`
 }
 
 type structBaseOrderInfoForPhotographer struct {
@@ -43,7 +46,9 @@ type structOrderForClient struct {
 	ID           int                 `json:"id"`
 	Photographer *structBaseUserInfo `json:"photographer"`
 	OrderCost    int                 `json:"order_cost"`
-	Location     model.Location      `json:"coordinates"`
+	//Location     model.Location      `json:"coordinates"`
+	Comment string `json:"comment"`
+	State   string `json:"state"`
 }
 
 type structBaseOrderInfoForClient struct {
@@ -256,6 +261,7 @@ func getBaseOrderInfoForPhotographer(orders []model.Order,
 	ur *store.UserRepository) (*structBaseOrderInfoForPhotographer, error) {
 	var ordersData = &structBaseOrderInfoForPhotographer{}
 
+	fmt.Println(orders)
 	for _, order := range orders {
 		u, err := ur.FindByID(order.ClientID)
 		if err != nil {
@@ -266,7 +272,9 @@ func getBaseOrderInfoForPhotographer(orders []model.Order,
 			ID:        order.ID,
 			OrderCost: order.OrderCost,
 			Client:    bu,
-			Location:  order.Location,
+			//Location:  order.Location,
+			Comment: order.Comment,
+			State:   order.OrderState,
 		}
 
 		ordersData.OrderList = append(ordersData.OrderList, orderData)
@@ -277,6 +285,7 @@ func getBaseOrderInfoForPhotographer(orders []model.Order,
 func getBaseOrderInfoForClient(orders []model.Order,
 	ur *store.UserRepository) (*structBaseOrderInfoForClient, error) {
 	var ordersData = &structBaseOrderInfoForClient{}
+	fmt.Println(orders)
 
 	for _, order := range orders {
 		var bu *structBaseUserInfo
@@ -291,7 +300,9 @@ func getBaseOrderInfoForClient(orders []model.Order,
 			ID:           order.ID,
 			OrderCost:    order.OrderCost,
 			Photographer: bu,
-			Location:     order.Location,
+			//Location:     order.Location,
+			Comment: order.Comment,
+			State:   order.OrderState,
 		}
 
 		ordersData.OrderList = append(ordersData.OrderList, orderData)

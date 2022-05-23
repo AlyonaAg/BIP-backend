@@ -39,21 +39,40 @@ definitions:
       username:
         type: string
     type: object
-  apiserver.structOrderForPhotographer:
+  apiserver.structOrderForClient:
     properties:
-      client:
-        $ref: '#/definitions/apiserver.structBaseUserInfo'
-      coordinates:
-        $ref: '#/definitions/model.Location'
+      comment:
+        description: Location     model.Location      `json:"coordinates"`
+        type: string
       id:
         type: integer
       order_cost:
         type: integer
-    type: object
-  apiserver.structRequest2Factor:
-    properties:
-      code:
+      photographer:
+        $ref: '#/definitions/apiserver.structBaseUserInfo'
+      state:
         type: string
+    type: object
+  apiserver.structOrderForPhotographer:
+    properties:
+      client:
+        $ref: '#/definitions/apiserver.structBaseUserInfo'
+      comment:
+        description: Location  model.Location      `json:"coordinates"`
+        type: string
+      id:
+        type: integer
+      order_cost:
+        type: integer
+      state:
+        type: string
+    type: object
+  apiserver.structRequestConfirmQRCode:
+    properties:
+      latitude:
+        type: number
+      longitude:
+        type: number
     type: object
   apiserver.structRequestReview:
     properties:
@@ -62,26 +81,12 @@ definitions:
       rating:
         type: integer
     type: object
-  apiserver.structRequestSessionsCreate:
-    properties:
-      password:
-        type: string
-      username:
-        type: string
-    type: object
   apiserver.structRequestUpload:
     properties:
       url_origin:
         type: string
       url_watermark:
         type: string
-    type: object
-  apiserver.structResponse2Factor:
-    properties:
-      jwt:
-        type: string
-      user:
-        $ref: '#/definitions/apiserver.structBaseUserInfo'
     type: object
   apiserver.structResponseAgreedPhotographers:
     properties:
@@ -96,6 +101,11 @@ definitions:
         items:
           $ref: '#/definitions/apiserver.structBaseUserInfo'
         type: array
+    type: object
+  apiserver.structResponseConfirmQRCode:
+    properties:
+      money:
+        type: integer
     type: object
   apiserver.structResponseCreateQRCode:
     properties:
@@ -113,6 +123,21 @@ definitions:
     properties:
       money:
         type: integer
+    type: object
+  apiserver.structResponseGetOrdersForClient:
+    properties:
+      active:
+        items:
+          $ref: '#/definitions/apiserver.structOrderForClient'
+        type: array
+      backlog:
+        items:
+          $ref: '#/definitions/apiserver.structOrderForClient'
+        type: array
+      finished:
+        items:
+          $ref: '#/definitions/apiserver.structOrderForClient'
+        type: array
     type: object
   apiserver.structResponseGetOrdersForPhotographer:
     properties:
@@ -132,11 +157,6 @@ definitions:
   apiserver.structResponseGetPreview:
     properties:
       url_watermark:
-        type: string
-    type: object
-  apiserver.structResponseSessionsCreate:
-    properties:
-      jwt:
         type: string
     type: object
   apiserver.successResponse:
@@ -211,75 +231,13 @@ definitions:
       username:
         type: string
     type: object
-host: 51.250.18.28:8080
+host: 51.250.22.74:8080
 info:
   contact: {}
   description: API for photographer search app
   title: BIP API
   version: "1.0"
 paths:
-  /auth:
-    post:
-      consumes:
-      - application/json
-      description: first step of two-factor authentication
-      parameters:
-      - description: username and password
-        in: body
-        name: user_auth
-        required: true
-        schema:
-          $ref: '#/definitions/apiserver.structRequestSessionsCreate'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/apiserver.structResponseSessionsCreate'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/apiserver.errorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/apiserver.errorResponse'
-      summary: Auth
-      tags:
-      - api
-  /auth2fa:
-    post:
-      consumes:
-      - application/json
-      description: second step of two-factor authentication
-      parameters:
-      - description: code sent by mail
-        in: body
-        name: code
-        required: true
-        schema:
-          $ref: '#/definitions/apiserver.structRequest2Factor'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/apiserver.structResponse2Factor'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/apiserver.errorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/apiserver.errorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Auth2Factor
-      tags:
-      - api
   /client/accept:
     patch:
       consumes:
@@ -330,7 +288,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/apiserver.structResponseGetOrdersForPhotographer'
+            $ref: '#/definitions/apiserver.structResponseGetOrdersForClient'
         "400":
           description: Bad Request
           schema:
@@ -519,32 +477,6 @@ paths:
       summary: Get list agreed photographers
       tags:
       - client api
-  /client/photographers:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: page
-        in: query
-        name: page
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/apiserver.structResponseAllPhotographers'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/apiserver.errorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Get list all photographers
-      tags:
-      - client api
   /client/qrcode:
     get:
       consumes:
@@ -679,13 +611,19 @@ paths:
         name: qrcode
         required: true
         type: string
+      - description: coordinates
+        in: body
+        name: coordinates
+        required: true
+        schema:
+          $ref: '#/definitions/apiserver.structRequestConfirmQRCode'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/apiserver.structResponseCreateQRCode'
+            $ref: '#/definitions/apiserver.structResponseConfirmQRCode'
         "400":
           description: Bad Request
           schema:
@@ -822,6 +760,30 @@ paths:
       summary: Upload link
       tags:
       - photographer api
+  /photographers:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.structResponseAllPhotographers'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiserver.errorResponse'
+      summary: Get list all photographers
+      tags:
+      - api
   /profile:
     get:
       consumes:

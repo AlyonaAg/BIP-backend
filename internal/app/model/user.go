@@ -46,6 +46,10 @@ func (u *User) BeforeCreate() error {
 		return nil
 	}
 	u.Password = enc
+
+	if u.AvatarURL == "" {
+		u.AvatarURL = "https://sun9-81.userapi.com/s/v1/ig2/_rz03QQJEtI3DELZbiRtKt5vbBS29JZythHNCljFiwTYnG6FBe7wz-0mI4ZXIezjXvT2aacB6rkyD094u25lDqw9.jpg?size=433x399&quality=96&type=album"
+	}
 	return nil
 }
 

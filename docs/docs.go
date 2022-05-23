@@ -16,103 +16,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/auth": {
-            "post": {
-                "description": "first step of two-factor authentication",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "api"
-                ],
-                "summary": "Auth",
-                "parameters": [
-                    {
-                        "description": "username and password",
-                        "name": "user_auth",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.structRequestSessionsCreate"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.structResponseSessionsCreate"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.errorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.errorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/auth2fa": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "second step of two-factor authentication",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "api"
-                ],
-                "summary": "Auth2Factor",
-                "parameters": [
-                    {
-                        "description": "code sent by mail",
-                        "name": "code",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.structRequest2Factor"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.structResponse2Factor"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.errorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.errorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/client/accept": {
             "patch": {
                 "security": [
@@ -196,7 +99,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/apiserver.structResponseGetOrdersForPhotographer"
+                            "$ref": "#/definitions/apiserver.structResponseGetOrdersForClient"
                         }
                     },
                     "400": {
@@ -495,48 +398,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/client/photographers": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "client api"
-                ],
-                "summary": "Get list all photographers",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "page",
-                        "name": "page",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.structResponseAllPhotographers"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/apiserver.errorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/client/qrcode": {
             "get": {
                 "security": [
@@ -758,13 +619,22 @@ const docTemplate = `{
                         "name": "qrcode",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "description": "coordinates",
+                        "name": "coordinates",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structRequestConfirmQRCode"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/apiserver.structResponseCreateQRCode"
+                            "$ref": "#/definitions/apiserver.structResponseConfirmQRCode"
                         }
                     },
                     "400": {
@@ -978,6 +848,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/photographers": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "Get list all photographers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "page",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.structResponseAllPhotographers"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apiserver.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/profile": {
             "get": {
                 "security": [
@@ -1134,28 +1041,56 @@ const docTemplate = `{
                 }
             }
         },
-        "apiserver.structOrderForPhotographer": {
+        "apiserver.structOrderForClient": {
             "type": "object",
             "properties": {
-                "client": {
-                    "$ref": "#/definitions/apiserver.structBaseUserInfo"
-                },
-                "coordinates": {
-                    "$ref": "#/definitions/model.Location"
+                "comment": {
+                    "description": "Location     model.Location      ` + "`" + `json:\"coordinates\"` + "`" + `",
+                    "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "order_cost": {
                     "type": "integer"
+                },
+                "photographer": {
+                    "$ref": "#/definitions/apiserver.structBaseUserInfo"
+                },
+                "state": {
+                    "type": "string"
                 }
             }
         },
-        "apiserver.structRequest2Factor": {
+        "apiserver.structOrderForPhotographer": {
             "type": "object",
             "properties": {
-                "code": {
+                "client": {
+                    "$ref": "#/definitions/apiserver.structBaseUserInfo"
+                },
+                "comment": {
+                    "description": "Location  model.Location      ` + "`" + `json:\"coordinates\"` + "`" + `",
                     "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "order_cost": {
+                    "type": "integer"
+                },
+                "state": {
+                    "type": "string"
+                }
+            }
+        },
+        "apiserver.structRequestConfirmQRCode": {
+            "type": "object",
+            "properties": {
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
                 }
             }
         },
@@ -1170,17 +1105,6 @@ const docTemplate = `{
                 }
             }
         },
-        "apiserver.structRequestSessionsCreate": {
-            "type": "object",
-            "properties": {
-                "password": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
         "apiserver.structRequestUpload": {
             "type": "object",
             "properties": {
@@ -1189,17 +1113,6 @@ const docTemplate = `{
                 },
                 "url_watermark": {
                     "type": "string"
-                }
-            }
-        },
-        "apiserver.structResponse2Factor": {
-            "type": "object",
-            "properties": {
-                "jwt": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/apiserver.structBaseUserInfo"
                 }
             }
         },
@@ -1222,6 +1135,14 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/apiserver.structBaseUserInfo"
                     }
+                }
+            }
+        },
+        "apiserver.structResponseConfirmQRCode": {
+            "type": "object",
+            "properties": {
+                "money": {
+                    "type": "integer"
                 }
             }
         },
@@ -1252,6 +1173,29 @@ const docTemplate = `{
                 }
             }
         },
+        "apiserver.structResponseGetOrdersForClient": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiserver.structOrderForClient"
+                    }
+                },
+                "backlog": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiserver.structOrderForClient"
+                    }
+                },
+                "finished": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiserver.structOrderForClient"
+                    }
+                }
+            }
+        },
         "apiserver.structResponseGetOrdersForPhotographer": {
             "type": "object",
             "properties": {
@@ -1279,14 +1223,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "url_watermark": {
-                    "type": "string"
-                }
-            }
-        },
-        "apiserver.structResponseSessionsCreate": {
-            "type": "object",
-            "properties": {
-                "jwt": {
                     "type": "string"
                 }
             }
@@ -1415,7 +1351,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "51.250.18.28:8080",
+	Host:             "51.250.22.74:8080",
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "BIP API",

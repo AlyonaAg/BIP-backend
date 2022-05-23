@@ -5,10 +5,10 @@ import (
 	"BIP_backend/internal/service/qrcode"
 	"encoding/hex"
 	"errors"
+	"github.com/gin-gonic/gin"
+	"math"
 	"net/http"
 	"strconv"
-
-	"github.com/gin-gonic/gin"
 
 	"BIP_backend/internal/app/model"
 	"BIP_backend/internal/service/auth"
@@ -72,15 +72,6 @@ func (s *Server) handleUserCreate() gin.HandlerFunc {
 	}
 }
 
-// @Summary      Auth
-// @Description  first step of two-factor authentication
-// @Tags         api
-// @Accept       json
-// @Produce      json
-// @Param        user_auth  body  structRequestSessionsCreate  true  "username and password"
-// @Success      200 {object}  structResponseSessionsCreate
-// @Failure      401,500  {object}  errorResponse
-// @Router       /auth [post]
 func (s *Server) handleSessionsCreate() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var r = &structRequestSessionsCreate{}
@@ -147,16 +138,6 @@ func (s *Server) handleSessionsCreate() gin.HandlerFunc {
 	}
 }
 
-// @Summary      Auth2Factor
-// @Security 	 ApiKeyAuth
-// @Description  second step of two-factor authentication
-// @Tags         api
-// @Accept       json
-// @Produce      json
-// @Param        code  body  structRequest2Factor  true  "code sent by mail"
-// @Success      200 {object}  structResponse2Factor
-// @Failure      401,500  {object}  errorResponse
-// @Router       /auth2fa [post]
 func (s *Server) handler2Factor() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var r = &structRequest2Factor{}
@@ -398,14 +379,13 @@ func (s *Server) handlerGetAgreedPhotographer() gin.HandlerFunc {
 }
 
 // @Summary      Get list all photographers
-// @Security 	 ApiKeyAuth
-// @Tags         client api
+// @Tags         api
 // @Accept       json
 // @Produce      json
 // @Param        page  query  int  true  "page"
 // @Success      200  {object}  structResponseAllPhotographers
 // @Failure      500  {object}  errorResponse
-// @Router       /client/photographers [get]
+// @Router       /photographers [get]
 func (s *Server) handlerGetAllPhotographer() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		page, err := strconv.Atoi(c.Query("page"))
@@ -632,7 +612,7 @@ func (s *Server) handlerGetPreview() gin.HandlerFunc {
 			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
 			return
 		}
-		if o.OrderState != model.Meeting && o.OrderState != model.Finish && o.OrderState != model.WatermarkSent {
+		if o.OrderState != model.Meeting && o.OrderState != model.WatermarkSent {
 			newErrorResponse(c, http.StatusBadRequest, incorrectAction, incorrectAction)
 			return
 		}
@@ -717,11 +697,15 @@ func (s *Server) handlerCreateQRCode() gin.HandlerFunc {
 			newErrorResponse(c, http.StatusBadRequest, incorrectLocation, err)
 			return
 		}
+		latitude = math.Floor(latitude*100) / 100
+
 		longitude, err := strconv.ParseFloat(c.Query("longitude"), 64)
 		if err != nil {
 			newErrorResponse(c, http.StatusBadRequest, incorrectLocation, err)
 			return
 		}
+		longitude = math.Floor(longitude*100) / 100
+		
 		userID, ok := c.Get("user_id")
 		if !ok {
 			newErrorResponse(c, http.StatusBadRequest, incorrectToken, incorrectToken)
@@ -743,7 +727,7 @@ func (s *Server) handlerCreateQRCode() gin.HandlerFunc {
 			newErrorResponse(c, http.StatusBadRequest, incorrectClientID, err)
 			return
 		}
-		if o.OrderState != model.AgreedClient {
+		if o.OrderState != model.AgreedClient && o.OrderState != model.Meeting {
 			newErrorResponse(c, http.StatusBadRequest, incorrectAction, incorrectAction)
 			return
 		}
@@ -801,7 +785,8 @@ func (s *Server) handlerCreateQRCode() gin.HandlerFunc {
 // @Accept       json
 // @Produce      json
 // @Param        qrcode  query  string  true  "qr-code"
-// @Success      200  {object}  structResponseCreateQRCode
+// @Param		 coordinates body structRequestConfirmQRCode  true  "coordinates"
+// @Success      200  {object}  structResponseConfirmQRCode
 // @Failure      400,500  {object}  errorResponse
 // @Router       /ph/confirm-qrcode [PATCH]
 func (s *Server) handlerConfirmQRCode() gin.HandlerFunc {
@@ -810,6 +795,12 @@ func (s *Server) handlerConfirmQRCode() gin.HandlerFunc {
 		qrCoder, err := qrcode.NewQRCoder()
 		if err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+			return
+		}
+
+		var o = &structRequestConfirmQRCode{}
+		if err := c.ShouldBindJSON(o); err != nil {
+			newErrorResponse(c, http.StatusBadRequest, incorrectRequestData, err)
 			return
 		}
 
@@ -822,6 +813,12 @@ func (s *Server) handlerConfirmQRCode() gin.HandlerFunc {
 		QRLocation, QROrderID, QRSecret, err := qrCoder.DecodeQRCode(qrCode)
 		if err != nil {
 			newErrorResponse(c, http.StatusBadRequest, incorrectQRCode, err)
+			return
+		}
+
+		if QRLocation.Longitude != math.Floor(o.Longitude*100)/100 ||
+			QRLocation.Latitude != math.Floor(o.Latitude*100)/100 {
+			newErrorResponse(c, http.StatusBadRequest, incorrectQRCode, incorrectQRCode)
 			return
 		}
 
@@ -869,7 +866,6 @@ func (s *Server) handlerConfirmQRCode() gin.HandlerFunc {
 		}
 
 		store.User().PutMoneyByID(photographerID.(int), int(float64(orderCost)*0.3))
-		cache.Del(strconv.Itoa(QROrderID))
 
 		c.JSON(http.StatusOK, responseConfirmQRCode(int(float64(orderCost)*0.3)))
 	}
@@ -1157,12 +1153,18 @@ func (s *Server) handlerGetMoney() gin.HandlerFunc {
 	}
 }
 
+func (s *Server) handlerAD() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(http.StatusOK, "дахнович лох")
+	}
+}
+
 // @Summary      User orders
 // @Security 	 ApiKeyAuth
 // @Tags         client api
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  structResponseGetOrdersForPhotographer
+// @Success      200  {object}  structResponseGetOrdersForClient
 // @Failure      400,500  {object}  errorResponse
 // @Router       /client/all-orders [GET]
 func (s *Server) handlerGetClientOrders() gin.HandlerFunc {
@@ -1224,6 +1226,35 @@ func (s *Server) handlerGetPhotographerOrders() gin.HandlerFunc {
 		response, err := responseGetOrdersForPhotographer(backlog, active, finished, store.User())
 
 		c.JSON(http.StatusOK, response)
+	}
+}
+
+func (s *Server) handlerPutMoney() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		clientID, ok := c.Get("user_id")
+		if !ok {
+			newErrorResponse(c, http.StatusUnauthorized, incorrectToken, incorrectToken)
+			return
+		}
+
+		var m = &structRequestPutMoney{}
+		if err := c.ShouldBindJSON(m); err != nil {
+			newErrorResponse(c, http.StatusBadRequest, incorrectRequestData, err)
+			return
+		}
+
+		store, err := s.GetStore()
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+			return
+		}
+
+		if err = store.User().PutMoneyByID(clientID.(int), m.Money); err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, internalServerError, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, newSuccessResponse(true, nil))
 	}
 }
 

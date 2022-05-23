@@ -49,8 +49,8 @@ func (or *OrderRepository) GetListCreatedOrder() ([]model.Order, error) {
 		return nil, err
 	}
 
-	rows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment ` +
-		`FROM "order" WHERE order_state = 'created' OR order_state = 'agreed_photographer'`)
+	rows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment, ` +
+		`order_state FROM "order" WHERE order_state = 'created' OR order_state = 'agreed_photographer'`)
 
 	if err != nil {
 		return nil, err
@@ -74,8 +74,8 @@ func (or *OrderRepository) GetClientOrders(clientID int) ([]model.Order, /*backl
 		return nil, nil, nil, err
 	}
 
-	backlogRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment `+
-		`FROM "order" WHERE (order_state = 'created' OR order_state = 'agreed_photographer') AND client_id = $1`,
+	backlogRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment, `+
+		`order_state FROM "order" WHERE (order_state = 'created' OR order_state = 'agreed_photographer') AND client_id = $1`,
 		clientID)
 	if err != nil {
 		return nil, nil, nil, err
@@ -86,8 +86,8 @@ func (or *OrderRepository) GetClientOrders(clientID int) ([]model.Order, /*backl
 		return nil, nil, nil, err
 	}
 
-	activeRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment `+
-		`FROM "order" WHERE (order_state = 'meeting' OR order_state = 'watermarks_sent' OR `+
+	activeRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment, `+
+		`order_state FROM "order" WHERE (order_state = 'meeting' OR order_state = 'watermarks_sent' OR `+
 		`order_state = 'agreed_client') AND client_id = $1`,
 		clientID)
 	if err != nil {
@@ -99,8 +99,8 @@ func (or *OrderRepository) GetClientOrders(clientID int) ([]model.Order, /*backl
 		return nil, nil, nil, err
 	}
 
-	finishedRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment `+
-		`FROM "order" WHERE order_state = 'finish' AND client_id = $1`,
+	finishedRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment, `+
+		`order_state FROM "order" WHERE order_state = 'finish' AND client_id = $1`,
 		clientID)
 	if err != nil {
 		return nil, nil, nil, err
@@ -123,8 +123,8 @@ func (or *OrderRepository) GetPhotographerOrders(clientID int) ([]model.Order, /
 		return nil, nil, nil, err
 	}
 
-	backlogRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment `+
-		`FROM "order" WHERE order_state = 'agreed_photographer' AND $1 IN (SELECT DISTINCT photographer_id FROM `+
+	backlogRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment, `+
+		`order_state FROM "order" WHERE order_state = 'agreed_photographer' AND $1 IN (SELECT DISTINCT photographer_id FROM `+
 		`"agreed_photographers" WHERE "order".id = "agreed_photographers".order_id)`,
 		clientID)
 	if err != nil {
@@ -136,8 +136,8 @@ func (or *OrderRepository) GetPhotographerOrders(clientID int) ([]model.Order, /
 		return nil, nil, nil, err
 	}
 
-	activeRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment `+
-		`FROM "order" WHERE (order_state = 'meeting' OR order_state = 'watermarks_sent' OR `+
+	activeRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment, `+
+		`order_state FROM "order" WHERE (order_state = 'meeting' OR order_state = 'watermarks_sent' OR `+
 		`order_state = 'agreed_client') AND photographer_id = $1`,
 		clientID)
 	if err != nil {
@@ -149,8 +149,8 @@ func (or *OrderRepository) GetPhotographerOrders(clientID int) ([]model.Order, /
 		return nil, nil, nil, err
 	}
 
-	finishedRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment `+
-		`FROM "order" WHERE order_state = 'finish' AND photographer_id = $1`,
+	finishedRows, err := store.db.Query(`SELECT id, client_id, photographer_id, order_cost, location, comment, `+
+		`order_state FROM "order" WHERE order_state = 'finish' AND photographer_id = $1`,
 		clientID)
 	if err != nil {
 		return nil, nil, nil, err
@@ -505,6 +505,7 @@ func getOrders(rows *sql.Rows) ([]model.Order, error) {
 			&order.OrderCost,
 			&locationString,
 			&order.Comment,
+			&order.OrderState,
 		); err != nil {
 			return nil, err
 		}
